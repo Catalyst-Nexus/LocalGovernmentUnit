@@ -11,22 +11,25 @@ export interface Module {
   created_at: string
 }
 
-export interface Permission {
+export interface RolePermission {
   id: string
+  role_id: string
   module_id: string
-  action_type: string
-  permission_code: string
-  description: string | null
+  can_select: boolean
+  can_insert: boolean
+  can_update: boolean
+  can_delete: boolean
+  created_at: string
 }
 
 interface RBACContextType {
   modules: Module[]
   userModules: Module[]
-  userPermissions: Permission[]
+  userPermissions: RolePermission[]
   isLoading: boolean
   isSuperAdmin: boolean
   hasModuleAccess: (moduleIdOrPath: string) => boolean
-  hasPermission: (permissionCode: string) => boolean
+  hasPermission: (moduleIdOrPath: string, action: 'select' | 'insert' | 'update' | 'delete') => boolean
   refreshPermissions: () => Promise<void>
 }
 
@@ -36,7 +39,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const user = useAuthStore((state) => state.user)
   const [modules, setModules] = useState<Module[]>([])
   const [userModules, setUserModules] = useState<Module[]>([])
-  const [userPermissions, setUserPermissions] = useState<Permission[]>([])
+  const [userPermissions, setUserPermissions] = useState<RolePermission[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const isSuperAdmin = user?.is_super_admin ?? false
@@ -59,7 +62,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const fetchUserPermissions = useCallback(async (): Promise<{
-    permissions: Permission[]
+    permissions: RolePermission[]
     moduleIds: string[]
   }> => {
     if (!isSupabaseConfigured() || !supabase || !user) {
@@ -85,10 +88,10 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { permissions: [], moduleIds: [] }
       }
 
-      // Step 2: Get permissions for those roles
+      // Step 2: Get role_permissions for those roles (new schema with booleans)
       const { data: rolePermissions, error: rolesPermError } = await supabase
         .from('role_permissions')
-        .select('permission_id')
+        .select('*')
         .in('role_id', roleIds)
 
       if (rolesPermError) {
@@ -96,28 +99,16 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { permissions: [], moduleIds: [] }
       }
 
-      const permissionIds = [...new Set(rolePermissions?.map((rp) => rp.permission_id) || [])]
+      // Filter to only include permissions where at least one action is enabled
+      const validPermissions = (rolePermissions || []).filter(
+        (rp) => rp.can_select || rp.can_insert || rp.can_update || rp.can_delete
+      ) as RolePermission[]
 
-      if (permissionIds.length === 0) {
-        console.log('User roles have no permissions')
-        return { permissions: [], moduleIds: [] }
-      }
-
-      // Step 3: Get permission details
-      const { data: permissions, error: permsError } = await supabase
-        .from('permissions')
-        .select('*')
-        .in('id', permissionIds)
-
-      if (permsError) {
-        console.error('Error fetching permissions:', permsError)
-        return { permissions: [], moduleIds: [] }
-      }
-
-      const moduleIds = [...new Set(permissions?.map((p) => p.module_id) || [])]
+      // Get unique module IDs from valid permissions
+      const moduleIds = [...new Set(validPermissions.map((p) => p.module_id))]
 
       return {
-        permissions: permissions || [],
+        permissions: validPermissions,
         moduleIds,
       }
     } catch (err) {
@@ -175,14 +166,31 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [isSuperAdmin, userModules]
   )
 
-  // Check if user has a specific permission
+  // Check if user has a specific permission for a module
   const hasPermission = useCallback(
-    (permissionCode: string): boolean => {
+    (moduleIdOrPath: string, action: 'select' | 'insert' | 'update' | 'delete'): boolean => {
       if (isSuperAdmin) return true
 
-      return userPermissions.some((p) => p.permission_code === permissionCode)
+      // Find the module by id or path
+      const module = modules.find(
+        (m) => m.id === moduleIdOrPath || m.route_path === moduleIdOrPath
+      )
+
+      if (!module) return false
+
+      // Check if any of the user's permissions grant the action for this module
+      return userPermissions.some((p) => {
+        if (p.module_id !== module.id) return false
+        switch (action) {
+          case 'select': return p.can_select
+          case 'insert': return p.can_insert
+          case 'update': return p.can_update
+          case 'delete': return p.can_delete
+          default: return false
+        }
+      })
     },
-    [isSuperAdmin, userPermissions]
+    [isSuperAdmin, userPermissions, modules]
   )
 
   // Fetch permissions on mount and when user changes

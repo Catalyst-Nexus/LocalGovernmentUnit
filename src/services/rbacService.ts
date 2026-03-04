@@ -489,17 +489,32 @@ export const upsertRolePermission = async (
 ): Promise<{ success: boolean; error?: string }> => {
   if (!supabase) return { success: false, error: 'Supabase not configured' }
   try {
-    const { error } = await supabase
+    // Check if a record already exists
+    const { data: existing } = await supabase
       .from('role_permissions')
-      .upsert(
-        {
+      .select('id')
+      .eq('role_id', roleId)
+      .eq('module_id', moduleId)
+      .maybeSingle()
+
+    if (existing) {
+      // Update existing record
+      const { error } = await supabase
+        .from('role_permissions')
+        .update(permissions)
+        .eq('id', existing.id)
+      if (error) return { success: false, error: error.message }
+    } else {
+      // Insert new record
+      const { error } = await supabase
+        .from('role_permissions')
+        .insert({
           role_id: roleId,
           module_id: moduleId,
           ...permissions,
-        },
-        { onConflict: 'role_id,module_id' }
-      )
-    if (error) return { success: false, error: error.message }
+        })
+      if (error) return { success: false, error: error.message }
+    }
     return { success: true }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
