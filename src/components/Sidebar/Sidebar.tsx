@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { Link, useLocation } from 'react-router'
-import { useSettingsStore, useAuthStore } from '@/store'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useSettingsStore } from '@/store'
+import { useRBAC } from '@/contexts/RBACContext'
 import { getIconByName } from '@/lib/iconMap'
 import { cn } from '@/lib/utils'
 import {
@@ -11,19 +11,10 @@ import {
   Cog,
   Shield,
   Users,
-  Key,
   ChevronLeft,
   ChevronRight,
   LucideIcon,
 } from 'lucide-react'
-
-interface Module {
-  id: string
-  module_name: string
-  route_path: string
-  icons: string | null
-  is_active: boolean
-}
 
 interface MenuItem {
   to: string
@@ -42,13 +33,12 @@ const Sidebar = () => {
   const setSidebarCollapsed = useSettingsStore((state) => state.setSidebarCollapsed)
   const compactMode = useSettingsStore((state) => state.compactMode)
   const systemLogo = useSettingsStore((state) => state.systemLogo)
-  const user = useAuthStore((state) => state.user)
+  
+  // Get modules from RBAC context
+  const { userModules } = useRBAC()
 
-  const [dynamicModules, setDynamicModules] = useState<Module[]>([])
-  const [menuSections, setMenuSections] = useState<MenuSection[]>([])
-
-  // Static menu sections
-  const staticSections: MenuSection[] = [
+  // Static menu sections (RBAC tabs kept static temporarily for testing)
+  const staticSections: MenuSection[] = useMemo(() => [
     {
       title: 'MAIN',
       items: [
@@ -62,170 +52,39 @@ const Sidebar = () => {
       ],
     },
     {
-      title: 'AUTH',
+      title: 'RBAC MANAGEMENT',
       items: [
-        { to: '/dashboard/user-activation', icon: Key, label: 'User Activation' },
+        { to: '/dashboard/rbac', icon: Shield, label: 'Roles' },
+        { to: '/dashboard/user-management', icon: Users, label: 'Users' },
+        { to: '/dashboard/dynamic', icon: Cog, label: 'Modules' },
+        { to: '/dashboard/assignment', icon: ClipboardList, label: 'Assignments' },
       ],
     },
-  ]
+  ], [])
 
-  // Fetch dynamic modules on mount
-  useEffect(() => {
-    fetchDynamicModules()
+  // Build dynamic section from RBAC user modules
+  const dynamicSection: MenuSection | null = useMemo(() => {
+    if (userModules.length === 0) return null
     
-    // Subscribe to real-time changes
-    if (isSupabaseConfigured() && supabase) {
-      const subscription = supabase
-        .channel('modules_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'modules' }, () => {
-          fetchDynamicModules()
-        })
-        .subscribe()
-
-      return () => {
-        subscription.unsubscribe()
-      }
+    return {
+      title: 'MODULES',
+      items: userModules.map((module) => ({
+        to: module.route_path,
+        icon: getIconByName(module.icons),
+        label: module.module_name,
+      })),
     }
-  }, [])
+  }, [userModules])
 
-  const fetchDynamicModules = async () => {
-    try {
-      if (!isSupabaseConfigured() || !supabase || !user) {
-        console.log('Supabase not configured or user not logged in')
-        return
-      }
-
-      // If user is super admin, fetch all modules without permission checks
-      if (user.is_super_admin) {
-        const { data: modules, error: modulesError } = await supabase
-          .from('modules')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: true })
-
-        if (modulesError) {
-          console.error('Error fetching modules:', modulesError)
-          return
-        }
-
-        setDynamicModules(modules || [])
-
-        // Build complete menu with all modules
-        const dynamicSection: MenuSection = {
-          title: 'ROLE-BASED ACCESS CONTROL',
-          items: (modules || []).map((module) => ({
-            to: module.route_path,
-            icon: getIconByName(module.icons),
-            label: module.module_name,
-          })),
-        }
-
-        const combinedSections = [...staticSections]
-        if (dynamicSection.items.length > 0) {
-          combinedSections.splice(2, 0, dynamicSection)
-        }
-
-        setMenuSections(combinedSections)
-        return
-      }
-
-      // Regular user: check permissions
-      // Step 1: Get user's roles
-      const { data: userRoles, error: userRolesError } = await supabase
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', user.id)
-
-      if (userRolesError) {
-        console.error('Error fetching user roles:', userRolesError)
-        return
-      }
-
-      const roleIds = userRoles?.map((ur) => ur.role_id) || []
-
-      if (roleIds.length === 0) {
-        console.log('User has no roles assigned')
-        setDynamicModules([])
-        setMenuSections([...staticSections])
-        return
-      }
-
-      // Step 2: Get permissions for those roles
-      const { data: rolePermissions, error: rolesPermError } = await supabase
-        .from('role_permission')
-        .select('permission_id')
-        .in('role_id', roleIds)
-
-      if (rolesPermError) {
-        console.error('Error fetching role permissions:', rolesPermError)
-        return
-      }
-
-      const permissionIds = rolePermissions?.map((rp) => rp.permission_id) || []
-
-      if (permissionIds.length === 0) {
-        console.log('User roles have no permissions')
-        setDynamicModules([])
-        setMenuSections([...staticSections])
-        return
-      }
-
-      // Step 3: Get permission details including module_id
-      const { data: permissions, error: permsError } = await supabase
-        .from('permissions')
-        .select('module_id')
-        .in('id', permissionIds)
-
-      if (permsError) {
-        console.error('Error fetching permissions:', permsError)
-        return
-      }
-
-      const moduleIds = [...new Set(permissions?.map((p) => p.module_id) || [])]
-
-      if (moduleIds.length === 0) {
-        console.log('No modules associated with user permissions')
-        setDynamicModules([])
-        setMenuSections([...staticSections])
-        return
-      }
-
-      // Step 4: Get the actual modules
-      const { data: modules, error: modulesError } = await supabase
-        .from('modules')
-        .select('*')
-        .in('id', moduleIds)
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
-
-      if (modulesError) {
-        console.error('Error fetching modules:', modulesError)
-        return
-      }
-
-      setDynamicModules(modules || [])
-
-      // Build complete menu with dynamic modules
-      const dynamicSection: MenuSection = {
-        title: 'ROLE-BASED ACCESS CONTROL',
-        items: (modules || []).map((module) => ({
-          to: module.route_path,
-          icon: getIconByName(module.icons),
-          label: module.module_name,
-        })),
-      }
-
-      // Combine static and dynamic sections
-      const combinedSections = [...staticSections]
-      if (dynamicSection.items.length > 0) {
-        combinedSections.splice(2, 0, dynamicSection) // Insert before AUTH section
-      }
-
-      setMenuSections(combinedSections)
-    } catch (err) {
-      console.error('Error in fetchDynamicModules:', err)
+  // Combine static and dynamic sections
+  const menuSections: MenuSection[] = useMemo(() => {
+    const sections = [...staticSections]
+    if (dynamicSection) {
+      // Insert dynamic modules section before RBAC MANAGEMENT
+      sections.splice(2, 0, dynamicSection)
     }
-  }
+    return sections
+  }, [staticSections, dynamicSection])
 
   return (
     <div className="h-screen flex flex-col bg-surface">

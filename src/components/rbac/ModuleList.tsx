@@ -45,9 +45,7 @@ const ModuleList = ({ modules, search, onSearchChange, onEdit, onDelete }: Modul
       key: 'is_active',
       header: 'Status',
       render: (module: Module) => (
-        <StatusBadge status={module.is_active ? 'success' : 'warning'}>
-          {module.is_active ? 'Active' : 'Inactive'}
-        </StatusBadge>
+        <StatusBadge status={module.is_active ? 'active' : 'inactive'} />
       ),
     },
     {

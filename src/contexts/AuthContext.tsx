@@ -11,6 +11,58 @@ interface User {
 
 interface AuthContextType {
   user: User | null
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  logout: () => Promise<void>
+  isAuthenticated: boolean
+  isLoading: boolean
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Helper function to fetch user's role from database
+  const fetchUserRole = async (userId: string): Promise<string> => {
+    try {
+      if (!isSupabaseConfigured() || !supabase) {
+        return 'user'
+      }
+
+      // Get user's first role from user_roles table
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', userId)
+        .limit(1)
+        .single()
+
+      if (error || !data) {
+        console.log('No role found for user:', error)
+        return 'user'
+      }
+
+      // Get role name from roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('role_code')
+        .eq('id', data.role_id)
+        .single()
+
+      if (roleError || !roleData) {
+        console.log('Role data not found:', roleError)
+        return 'user'
+      }
+
+      return roleData.role_code || 'user'
+    } catch (err) {
+      console.error('Error fetching user role:', err)
+      return 'user'
+    }
+  }
+
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!isSupabaseConfigured() || !supabase) {
@@ -52,54 +104,16 @@ interface AuthContextType {
       return { success: false, error: message }
     }
   }
-  logout: () => Promise<void>
-  isAuthenticated: boolean
-  isLoading: boolean
-}
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-export const export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  // Helper function to fetch user's role from database
-  const fetchUserRole = async (userId: string): Promise<string> => {
+  const logout = async (): Promise<void> => {
     try {
-      if (!isSupabaseConfigured() || !supabase) {
-        return 'user'
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.auth.signOut()
       }
-
-      // Get user's first role from user_roles table
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role_id')
-        .eq('user_id', userId)
-        .limit(1)
-        .single()
-
-      if (error || !data) {
-        console.log('No role found for user:', error)
-        return 'user'
-      }
-
-      // Get role name from roles table
-      const { data: roleData, error: roleError } = await supabase
-        .from('roles')
-        .select('role_code')
-        .eq('id', data.role_id)
-        .single()
-
-      if (roleError || !roleData) {
-        console.log('Role data not found:', roleError)
-        return 'user'
-      }
-
-      return roleData.role_code || 'user'
-    } catch (err) {
-      console.error('Error fetching user role:', err)
-      return 'user'
+      setUser(null)
+      setIsAuthenticated(false)
+    } catch (error) {
+      console.error('Logout error:', error)
     }
   }
 
@@ -180,7 +194,10 @@ export const export const AuthProvider: React.FC<{ children: React.ReactNode }> 
     }
 
     initializeAuth()
-  }, [])>
+  }, [])
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

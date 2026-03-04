@@ -10,6 +10,8 @@ interface ModuleDialogProps {
   onRoutePathChange: (value: string) => void
   selectedIcon: string
   onSelectedIconChange: (value: string) => void
+  isActive: boolean
+  onIsActiveChange: (value: boolean) => void
   availableIcons: string[]
   isLoading?: boolean
   editMode?: boolean
@@ -25,6 +27,8 @@ const ModuleDialog = ({
   onRoutePathChange,
   selectedIcon,
   onSelectedIconChange,
+  isActive,
+  onIsActiveChange,
   availableIcons = [],
   isLoading = false,
   editMode = false,
@@ -71,6 +75,19 @@ const ModuleDialog = ({
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          id="is-active"
+          type="checkbox"
+          checked={isActive}
+          onChange={(e) => onIsActiveChange(e.target.checked)}
+          className="w-4 h-4 border border-border rounded bg-surface cursor-pointer"
+        />
+        <label htmlFor="is-active" className="text-sm font-medium text-foreground cursor-pointer">
+          Active
+        </label>
       </div>
     </BaseDialog>
   )

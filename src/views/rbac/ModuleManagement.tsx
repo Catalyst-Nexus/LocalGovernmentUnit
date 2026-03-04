@@ -18,9 +18,11 @@ const ModuleManagement = () => {
   const [modules, setModules] = useState<Module[]>([])
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
   const [moduleName, setModuleName] = useState('')
   const [routePath, setRoutePath] = useState('')
   const [selectedIcon, setSelectedIcon] = useState('')
+  const [isActive, setIsActive] = useState(true)
   const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -67,36 +69,64 @@ const ModuleManagement = () => {
         return
       }
 
-      const { data, error: insertError } = await supabase
-        .from('modules')
-        .insert({
-          module_name: moduleName.trim(),
-          route_path: routePath.trim(),
-          icons: selectedIcon || null,
-          is_active: true,
-        })
-        .select()
+      // If editing, update the module
+      if (editingModuleId) {
+        const { data, error: updateError } = await supabase
+          .from('modules')
+          .update({
+            module_name: moduleName.trim(),
+            route_path: routePath.trim(),
+            icons: selectedIcon || null,
+            is_active: isActive,
+          })
+          .eq('id', editingModuleId)
+          .select()
 
-      if (insertError) {
-        console.error('Insert module error:', insertError)
-        setError(insertError.message)
-        return
-      }
+        if (updateError) {
+          console.error('Update module error:', updateError)
+          setError(updateError.message)
+          return
+        }
 
-      // Add new module to list
-      if (data && data.length > 0) {
-        setModules([data[0], ...modules])
+        // Update module in list
+        if (data && data.length > 0) {
+          setModules(modules.map((m) => (m.id === editingModuleId ? data[0] : m)))
+        }
+      } else {
+        // Create new module
+        const { data, error: insertError } = await supabase
+          .from('modules')
+          .insert({
+            module_name: moduleName.trim(),
+            route_path: routePath.trim(),
+            icons: selectedIcon || null,
+            is_active: isActive,
+          })
+          .select()
+
+        if (insertError) {
+          console.error('Insert module error:', insertError)
+          setError(insertError.message)
+          return
+        }
+
+        // Add new module to list
+        if (data && data.length > 0) {
+          setModules([data[0], ...modules])
+        }
       }
 
       // Reset form and close modal
       setModuleName('')
       setRoutePath('')
       setSelectedIcon('')
+      setIsActive(true)
       setDescription('')
+      setEditingModuleId(null)
       setShowModal(false)
       setError('')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create module'
+      const message = err instanceof Error ? err.message : 'Failed to save module'
       setError(message)
     } finally {
       setIsLoading(false)
@@ -133,8 +163,9 @@ const ModuleManagement = () => {
     setModuleName(module.module_name)
     setRoutePath(module.route_path)
     setSelectedIcon(module.icons || '')
+    setIsActive(module.is_active)
     setDescription(module.icons || '')
-    // TODO: implement full edit functionality
+    setEditingModuleId(module.id)
     setShowModal(true)
   }
 
@@ -161,7 +192,9 @@ const ModuleManagement = () => {
           setModuleName('')
           setRoutePath('')
           setSelectedIcon('')
+          setIsActive(true)
           setDescription('')
+          setEditingModuleId(null)
           setError('')
           setShowModal(true)
         }}>
@@ -189,6 +222,11 @@ const ModuleManagement = () => {
         onClose={() => {
           setShowModal(false)
           setError('')
+          setEditingModuleId(null)
+          setModuleName('')
+          setRoutePath('')
+          setSelectedIcon('')
+          setIsActive(true)
         }}
         onSubmit={handleCreate}
         moduleName={moduleName}
@@ -197,8 +235,11 @@ const ModuleManagement = () => {
         onRoutePathChange={setRoutePath}
         selectedIcon={selectedIcon}
         onSelectedIconChange={setSelectedIcon}
+        isActive={isActive}
+        onIsActiveChange={setIsActive}
         availableIcons={availableIcons}
         isLoading={isLoading}
+        editMode={!!editingModuleId}
       />
     </div>
   )
