@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useAuth } from './AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 interface SettingsContextType {
   darkMode: boolean

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { UserActivationList, UserActivationDialog } from '@/components/rbac'
 import { PageHeader, StatsRow, StatCard, ActionsBar, PrimaryButton } from '@/components/ui'
 import { UserCheck, RefreshCw } from 'lucide-react'
+import { usePermissionGuard } from '@/hooks/usePermissionGuard'
 import { 
   fetchPendingUsers, 
   confirmPendingUser, 
@@ -24,6 +25,9 @@ const UserActivation = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Use permission guard for permission-checked operations
+  const { canPerform } = usePermissionGuard('/dashboard/user-activation')
 
   // Fetch pending users on component mount
   useEffect(() => {
@@ -60,7 +64,17 @@ const UserActivation = () => {
     if (!selectedUser) return
 
     setIsProcessing(true)
+    setError('')
+    
     try {
+      // Check permission before performing action
+      const hasPermission = await canPerform('update')
+      if (!hasPermission) {
+        setError("You don't have permission to activate users")
+        setIsProcessing(false)
+        return
+      }
+      
       const result = await confirmPendingUser(selectedUser.id)
       
       if (result.success) {
@@ -83,7 +97,17 @@ const UserActivation = () => {
     if (!selectedUser) return
 
     setIsProcessing(true)
+    setError('')
+    
     try {
+      // Check permission before performing action
+      const hasPermission = await canPerform('delete')
+      if (!hasPermission) {
+        setError("You don't have permission to reject users")
+        setIsProcessing(false)
+        return
+      }
+      
       const result = await rejectPendingUser(selectedUser.id)
       
       if (result.success) {

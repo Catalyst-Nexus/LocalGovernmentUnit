@@ -1,3 +1,4 @@
+import React from 'react'
 import { DataTable, StatusBadge, IconButton } from '@/components/ui'
 import { Pencil, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -26,7 +27,7 @@ const ModuleList = ({ modules, search, onSearchChange, onEdit, onDelete }: Modul
       module.route_path.toLowerCase().includes(search.toLowerCase())
   )
 
-  const columns = [
+  const columns: Array<{ key: keyof Module | 'actions'; header: string; render: (module: Module) => React.ReactNode }> = [
     { key: 'module_name', header: 'Module Name', render: (module: Module) => module.module_name },
     { key: 'route_path', header: 'Route Path', render: (module: Module) => module.route_path },
     {

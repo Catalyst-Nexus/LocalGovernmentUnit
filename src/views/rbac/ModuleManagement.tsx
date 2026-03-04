@@ -23,7 +23,6 @@ const ModuleManagement = () => {
   const [routePath, setRoutePath] = useState('')
   const [selectedIcon, setSelectedIcon] = useState('')
   const [isActive, setIsActive] = useState(true)
-  const [description, setDescription] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -121,7 +120,6 @@ const ModuleManagement = () => {
       setRoutePath('')
       setSelectedIcon('')
       setIsActive(true)
-      setDescription('')
       setEditingModuleId(null)
       setShowModal(false)
       setError('')
@@ -164,7 +162,6 @@ const ModuleManagement = () => {
     setRoutePath(module.route_path)
     setSelectedIcon(module.icons || '')
     setIsActive(module.is_active)
-    setDescription(module.icons || '')
     setEditingModuleId(module.id)
     setShowModal(true)
   }
@@ -193,7 +190,6 @@ const ModuleManagement = () => {
           setRoutePath('')
           setSelectedIcon('')
           setIsActive(true)
-          setDescription('')
           setEditingModuleId(null)
           setError('')
           setShowModal(true)

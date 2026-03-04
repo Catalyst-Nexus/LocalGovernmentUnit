@@ -22,6 +22,13 @@ export interface RolePermission {
   created_at: string
 }
 
+export interface ModulePermissions {
+  canSelect: boolean
+  canInsert: boolean
+  canUpdate: boolean
+  canDelete: boolean
+}
+
 interface RBACContextType {
   modules: Module[]
   userModules: Module[]
@@ -30,6 +37,7 @@ interface RBACContextType {
   isSuperAdmin: boolean
   hasModuleAccess: (moduleIdOrPath: string) => boolean
   hasPermission: (moduleIdOrPath: string, action: 'select' | 'insert' | 'update' | 'delete') => boolean
+  getModulePermissions: (moduleIdOrPath: string) => ModulePermissions
   refreshPermissions: () => Promise<void>
 }
 
@@ -193,6 +201,37 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [isSuperAdmin, userPermissions, modules]
   )
 
+  // Get all permissions for a specific module
+  const getModulePermissions = useCallback(
+    (moduleIdOrPath: string): ModulePermissions => {
+      // Super admin has all permissions
+      if (isSuperAdmin) {
+        return { canSelect: true, canInsert: true, canUpdate: true, canDelete: true }
+      }
+
+      // Find the module by id or path
+      const module = modules.find(
+        (m) => m.id === moduleIdOrPath || m.route_path === moduleIdOrPath
+      )
+
+      if (!module) {
+        return { canSelect: false, canInsert: false, canUpdate: false, canDelete: false }
+      }
+
+      // Aggregate permissions from all role permissions for this module
+      // (user might have multiple roles with different permissions)
+      const modulePerms = userPermissions.filter((p) => p.module_id === module.id)
+
+      return {
+        canSelect: modulePerms.some((p) => p.can_select),
+        canInsert: modulePerms.some((p) => p.can_insert),
+        canUpdate: modulePerms.some((p) => p.can_update),
+        canDelete: modulePerms.some((p) => p.can_delete),
+      }
+    },
+    [isSuperAdmin, userPermissions, modules]
+  )
+
   // Fetch permissions on mount and when user changes
   useEffect(() => {
     refreshPermissions()
@@ -230,6 +269,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isSuperAdmin,
         hasModuleAccess,
         hasPermission,
+        getModulePermissions,
         refreshPermissions,
       }}
     >
@@ -244,6 +284,12 @@ export const useRBAC = (): RBACContextType => {
     throw new Error('useRBAC must be used within an RBACProvider')
   }
   return context
+}
+
+// Custom hook for getting permissions for a specific module
+export const useModulePermissions = (moduleIdOrPath: string): ModulePermissions => {
+  const { getModulePermissions } = useRBAC()
+  return getModulePermissions(moduleIdOrPath)
 }
 
 export default RBACContext
