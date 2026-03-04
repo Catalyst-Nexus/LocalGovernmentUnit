@@ -101,23 +101,13 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data.user) {
-            // Fetch user profile from database
-            const { data: userProfile, error: profileError } = await supabase
-              .from('users')
-              .select('id, username, email, role, profile_picture')
-              .eq('id', data.user.id)
-              .single()
-
-            if (profileError && profileError.code !== 'PGRST116') {
-              console.error('Profile fetch error:', profileError)
-            }
-
+            const meta = data.user.user_metadata || {}
             const userData: User = {
               id: data.user.id,
-              username: userProfile?.username || email.split('@')[0],
+              username: meta.username || meta.display_name || email.split('@')[0],
               email: email,
-              role: userProfile?.role || 'user',
-              profilePicture: userProfile?.profile_picture || null,
+              role: meta.role || 'user',
+              profilePicture: meta.profile_picture || null,
             }
 
             set({ user: userData, isAuthenticated: true, isLoading: false })

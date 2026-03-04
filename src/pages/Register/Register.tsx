@@ -61,6 +61,8 @@ const Register = () => {
         options: {
           data: {
             username,
+            display_name: username,
+            full_name: username,
           },
         },
       })
@@ -72,27 +74,10 @@ const Register = () => {
       }
 
       if (authData.user) {
-        // Create user profile in database
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            username: username.toLowerCase(),
-            email: email.toLowerCase(),
-            role: 'user', // Default role for new users
-          })
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Profile creation failed, but auth succeeded
-          // User can still log in, they just might not have a profile yet
-          setError('Account created but profile setup failed. Please try logging in.')
-        } else {
-          setSuccess('Account created successfully! Redirecting to login...')
-          setTimeout(() => {
-            navigate('/login')
-          }, 2000)
-        }
+        setSuccess('Account created successfully! Redirecting to login...')
+        setTimeout(() => {
+          navigate('/login')
+        }, 2000)
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during registration'

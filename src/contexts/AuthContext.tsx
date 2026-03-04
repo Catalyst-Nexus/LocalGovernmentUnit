@@ -48,22 +48,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (session?.user) {
-          // Fetch user profile from database
-          const { data: userProfile, error: profileError } = await supabase
-            .from('users')
-            .select('id, username, email, role')
-            .eq('id', session.user.id)
-            .single()
-
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.error('Profile fetch error:', profileError)
-          }
-
+          const meta = session.user.user_metadata || {}
           const userData: User = {
             id: session.user.id,
-            username: userProfile?.username || session.user.email?.split('@')[0] || 'User',
+            username: meta.username || meta.display_name || session.user.email?.split('@')[0] || 'User',
             email: session.user.email || '',
-            role: userProfile?.role || 'user',
+            role: meta.role || 'user',
           }
 
           setUser(userData)
@@ -76,19 +66,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false)
 
         // Subscribe to auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
           if (session?.user) {
-            const { data: userProfile } = await supabase
-              .from('users')
-              .select('id, username, email, role')
-              .eq('id', session.user.id)
-              .single()
-
+            const meta = session.user.user_metadata || {}
             const userData: User = {
               id: session.user.id,
-              username: userProfile?.username || session.user.email?.split('@')[0] || 'User',
+              username: meta.username || meta.display_name || session.user.email?.split('@')[0] || 'User',
               email: session.user.email || '',
-              role: userProfile?.role || 'user',
+              role: meta.role || 'user',
             }
 
             setUser(userData)
@@ -127,18 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        // Fetch user profile
-        const { data: userProfile } = await supabase
-          .from('users')
-          .select('id, username, email, role')
-          .eq('id', data.user.id)
-          .single()
-
+        const meta = data.user.user_metadata || {}
         const userData: User = {
           id: data.user.id,
-          username: userProfile?.username || email.split('@')[0],
+          username: meta.username || meta.display_name || email.split('@')[0],
           email: email,
-          role: userProfile?.role || 'user',
+          role: meta.role || 'user',
         }
 
         setUser(userData)
