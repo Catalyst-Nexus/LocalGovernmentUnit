@@ -3,7 +3,6 @@ import { UserList, UserDialog, UserFacilityAssignmentList, UserFacilityAssignmen
 import { PageHeader, StatsRow, StatCard, ActionsBar, PrimaryButton, Tabs } from '@/components/ui'
 import { Users, Plus, RefreshCw } from 'lucide-react'
 import { fetchUsers, fetchRoles, assignRoleToUser, getUserRoles, fetchFacilities, assignFacilitiesToUser, getUserFacilities, fetchUserRoleAssignments, type User as DBUser, type Role, type Facility } from '@/services/rbacService'
-import RoleModuleAccessManagement from './RoleModuleAccessManagement'
 import PermissionManagement from './PermissionManagement'
 import RolePermissionManagement from './RolePermissionManagement'
 
@@ -16,7 +15,7 @@ interface User {
 }
 
 type TabKey = 'users' | 'assignments' | 'roles' | 'access'
-type AccessSubTab = 'module-access' | 'permissions' | 'role-permissions'
+type AccessSubTab = 'permissions' | 'role-permissions'
 
 const tabs = [
   { key: 'users', label: 'Users' },
@@ -26,7 +25,6 @@ const tabs = [
 ]
 
 const accessSubTabs = [
-  { key: 'module-access', label: 'Module Access' },
   { key: 'permissions', label: 'Permissions' },
   { key: 'role-permissions', label: 'Role Permissions' },
 ]
@@ -59,7 +57,7 @@ const UserManagement = () => {
   const [roleAssignmentSearch, setRoleAssignmentSearch] = useState('')
   const [editingUserRoleId, setEditingUserRoleId] = useState<string | null>(null)
   const [userRoleAssignments, setUserRoleAssignments] = useState<any[]>([])
-  const [accessSubTab, setAccessSubTab] = useState<AccessSubTab>('module-access')
+  const [accessSubTab, setAccessSubTab] = useState<AccessSubTab>('permissions')
 
   // Fetch users and roles on component mount
   useEffect(() => {
@@ -432,7 +430,6 @@ const UserManagement = () => {
             ))}
           </div>
 
-          {accessSubTab === 'module-access' && <RoleModuleAccessManagement />}
           {accessSubTab === 'permissions' && <PermissionManagement />}
           {accessSubTab === 'role-permissions' && <RolePermissionManagement />}
         </div>

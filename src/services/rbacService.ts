@@ -260,7 +260,8 @@ export const assignModulesToRole = async (
       const { error } = await supabase.from('role_module_access').insert(assignments)
 
       if (error) {
-        return { success: false, error: `Failed to assign modules: ${error.message}` }
+        const msg = error.message || error.details || error.hint || JSON.stringify(error)
+        return { success: false, error: `Failed to assign modules: ${msg}` }
       }
     }
 
@@ -278,7 +279,7 @@ export const getRoleModules = async (roleId: string): Promise<Module[]> => {
   try {
     const { data, error } = await supabase
       .from('role_module_access')
-      .select('modules(*)')
+      .select('module_id, modules:module_id(id, module_name, route_path, icons, is_active, created_at)')
       .eq('role_id', roleId)
 
     if (error) {
