@@ -10,6 +10,7 @@ interface Module {
   module_name: string
   route_path: string
   icons: string | null
+  file_path: string | null
   is_active: boolean
   created_at: string
 }
@@ -22,6 +23,7 @@ const ModuleManagement = () => {
   const [moduleName, setModuleName] = useState('')
   const [routePath, setRoutePath] = useState('')
   const [selectedIcon, setSelectedIcon] = useState('')
+  const [filePath, setFilePath] = useState('')
   const [isActive, setIsActive] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -54,7 +56,7 @@ const ModuleManagement = () => {
   }
 
   const handleCreate = async () => {
-    if (!moduleName.trim() || !routePath.trim()) {
+    if (!moduleName.trim() || !routePath.trim() || !filePath.trim()) {
       setError('Please fill in all required fields')
       return
     }
@@ -76,6 +78,7 @@ const ModuleManagement = () => {
             module_name: moduleName.trim(),
             route_path: routePath.trim(),
             icons: selectedIcon || null,
+            file_path: filePath.trim(),
             is_active: isActive,
           })
           .eq('id', editingModuleId)
@@ -99,6 +102,7 @@ const ModuleManagement = () => {
             module_name: moduleName.trim(),
             route_path: routePath.trim(),
             icons: selectedIcon || null,
+            file_path: filePath.trim(),
             is_active: isActive,
           })
           .select()
@@ -119,6 +123,7 @@ const ModuleManagement = () => {
       setModuleName('')
       setRoutePath('')
       setSelectedIcon('')
+      setFilePath('')
       setIsActive(true)
       setEditingModuleId(null)
       setShowModal(false)
@@ -161,6 +166,7 @@ const ModuleManagement = () => {
     setModuleName(module.module_name)
     setRoutePath(module.route_path)
     setSelectedIcon(module.icons || '')
+    setFilePath(module.file_path || '')
     setIsActive(module.is_active)
     setEditingModuleId(module.id)
     setShowModal(true)
@@ -189,6 +195,7 @@ const ModuleManagement = () => {
           setModuleName('')
           setRoutePath('')
           setSelectedIcon('')
+          setFilePath('')
           setIsActive(true)
           setEditingModuleId(null)
           setError('')
@@ -222,6 +229,7 @@ const ModuleManagement = () => {
           setModuleName('')
           setRoutePath('')
           setSelectedIcon('')
+          setFilePath('')
           setIsActive(true)
         }}
         onSubmit={handleCreate}
@@ -231,6 +239,8 @@ const ModuleManagement = () => {
         onRoutePathChange={setRoutePath}
         selectedIcon={selectedIcon}
         onSelectedIconChange={setSelectedIcon}
+        filePath={filePath}
+        onFilePathChange={setFilePath}
         isActive={isActive}
         onIsActiveChange={setIsActive}
         availableIcons={availableIcons}

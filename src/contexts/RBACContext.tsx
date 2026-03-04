@@ -9,6 +9,7 @@ export interface Module {
   icons: string | null
   is_active: boolean
   created_at: string
+  file_path?: string | null
 }
 
 export interface RolePermission {

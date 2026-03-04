@@ -8,6 +8,7 @@ interface Module {
   module_name: string
   route_path: string
   icons: string | null
+  file_path: string | null
   is_active: boolean
   created_at: string
 }

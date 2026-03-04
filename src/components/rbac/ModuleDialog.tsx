@@ -10,6 +10,8 @@ interface ModuleDialogProps {
   onRoutePathChange: (value: string) => void
   selectedIcon: string
   onSelectedIconChange: (value: string) => void
+  filePath: string
+  onFilePathChange: (value: string) => void
   isActive: boolean
   onIsActiveChange: (value: boolean) => void
   availableIcons: string[]
@@ -27,6 +29,8 @@ const ModuleDialog = ({
   onRoutePathChange,
   selectedIcon,
   onSelectedIconChange,
+  filePath,
+  onFilePathChange,
   isActive,
   onIsActiveChange,
   availableIcons = [],
@@ -58,6 +62,25 @@ const ModuleDialog = ({
         onChange={onRoutePathChange}
         required
       />
+      <FormInput
+        id="file-path"
+        label="File Path"
+        placeholder="e.g., views/rbac/UserManagement"
+        value={filePath}
+        onChange={onFilePathChange}
+        required
+      />
+      <div className="text-xs text-muted space-y-1 -mt-1">
+        <p>Available component paths:</p>
+        <ul className="list-disc list-inside ml-2 space-y-0.5">
+          <li>views/rbac/UserActivation</li>
+          <li>views/rbac/RoleManagement</li>
+          <li>views/rbac/UserManagement</li>
+          <li>views/rbac/ModuleManagement</li>
+          <li>views/rbac/FacilitiesManagement</li>
+        </ul>
+        <p className="italic">Register new components in DynamicRoutes.tsx</p>
+      </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="icon" className="text-sm font-medium text-foreground">
           Icon

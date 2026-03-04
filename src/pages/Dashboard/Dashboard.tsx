@@ -1,12 +1,8 @@
 import { Routes, Route, Link } from 'react-router'
 import Layout from '@/components/Layout/Layout'
+import DynamicRoutes from '@/components/DynamicRoutes'
 import UserProfile from '../UserProfile/UserProfile'
 import Settings from '../Settings/Settings'
-import RoleManagement from '@/views/rbac/RoleManagement'
-import FacilitiesManagement from '@/views/rbac/FacilitiesManagement'
-import ModuleManagement from '@/views/rbac/ModuleManagement'
-import UserManagement from '@/views/rbac/UserManagement'
-import UserActivation from '@/views/rbac/UserActivation'
 
 import { cn } from '@/lib/utils'
 import {
@@ -338,11 +334,9 @@ const Dashboard = () => {
         <Route path="/" element={<DashboardHome />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/rbac" element={<RoleManagement />} />
-        <Route path="/facilities" element={<FacilitiesManagement />} />
-        <Route path="/dynamic" element={<ModuleManagement />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/user-activation" element={<UserActivation />} />
+        
+        {/* Dynamic routes from database modules */}
+        <DynamicRoutes />
       </Routes>
     </Layout>
   )
