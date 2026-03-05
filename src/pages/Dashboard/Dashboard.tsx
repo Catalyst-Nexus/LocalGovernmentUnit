@@ -5,6 +5,57 @@ import { useRBAC } from '@/contexts/RBACContext'
 import UserProfile from '../UserProfile/UserProfile'
 import Settings from '../Settings/Settings'
 
+// Dynamic component loader - loads any component by its file path
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-success mx-auto mb-4"></div>
+      <p className="text-muted">Loading module...</p>
+    </div>
+  </div>
+)
+
+// Build a map of all available modules using Vite's glob pattern
+// This allows truly dynamic loading without hardcoding individual imports
+const moduleMap = import.meta.glob('../../views/**/*.tsx', { eager: false, import: 'default' })
+
+const DynamicComponentLoader = ({ filePath }: { filePath: string }) => {
+  // Normalize the path (convert backslashes to forward slashes)
+  const normalizedPath = filePath.replace(/\\/g, '/')
+  const modulePath = `../../${normalizedPath}.tsx`
+
+  // Dynamically import using the pre-built module map
+  const Component = lazy(() =>
+    (async () => {
+      try {
+        const moduleLoader = moduleMap[modulePath]
+        if (!moduleLoader) {
+          throw new Error(`Module not found: ${modulePath}`)
+        }
+        const defaultExport = await moduleLoader()
+        return { default: defaultExport as React.ComponentType }
+      } catch (error: unknown) {
+        console.error(`Failed to load module ${normalizedPath}:`, error)
+        return {
+          default: (() => (
+            <div className="flex items-center justify-center h-96 text-red-500 flex-col gap-4">
+              <p className="text-lg font-semibold">Failed to load module</p>
+              <p className="text-sm text-muted">{normalizedPath}</p>
+              <p className="text-xs text-muted">Check that the file exists and exports a default component</p>
+            </div>
+          )) as unknown as React.ComponentType,
+        }
+      }
+    })()
+  )
+
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <Component />
+    </Suspense>
+  )
+}
+
 import { cn } from '@/lib/utils'
 import {
   Users,
@@ -335,28 +386,28 @@ const componentRegistry: Record<string, React.LazyExoticComponent<React.Componen
   'views/rbac/UserManagement': lazy(() => import('@/views/rbac/UserManagement')),
   'views/rbac/ModuleManagement': lazy(() => import('@/views/rbac/ModuleManagement')),
   'views/rbac/FacilitiesManagement': lazy(() => import('@/views/rbac/FacilitiesManagement')),
-  // Add your custom module components here
+  // Legacy static registry - for RBAC modules only
+  // Animal modules and new modules are loaded dynamically via file path
 }
-
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-success mx-auto mb-4"></div>
-      <p className="text-muted">Loading module...</p>
-    </div>
-  </div>
-)
 
 const Dashboard = () => {
   const { userModules } = useRBAC()
   
-  // Get dynamic routes from modules that have valid file_path
-  const dynamicRoutes = userModules
-    .filter(module => module.file_path && module.file_path in componentRegistry)
-    .map(module => ({
-      path: module.route_path.replace(/^\/dashboard/, ''),
-      Component: componentRegistry[module.file_path!],
-    }))
+  // Get dynamic routes from all modules
+  const dynamicRoutes = userModules.map(module => {
+    const basePath = module.route_path.replace(/^\/dashboard/, '')
+    const normalizedPath = module.file_path?.replace(/\\/g, '/') || ''
+    
+    // Check if this is a legacy RBAC module in the registry
+    const isLegacyModule = normalizedPath in componentRegistry
+    
+    return {
+      path: basePath,
+      type: isLegacyModule ? ('registry' as const) : ('dynamic' as const),
+      filePath: module.file_path,
+      registryKey: normalizedPath,
+    }
+  })
 
   return (
     <Layout>
@@ -366,14 +417,23 @@ const Dashboard = () => {
         <Route path="/settings" element={<Settings />} />
         
         {/* Dynamic routes from database modules */}
-        {dynamicRoutes.map(({ path, Component }) => (
+        {dynamicRoutes.map((route) => (
           <Route
-            key={path}
-            path={path}
+            key={route.path}
+            path={route.path}
             element={
-              <Suspense fallback={<LoadingFallback />}>
-                <Component />
-              </Suspense>
+              route.type === 'registry' ? (
+                // Legacy module from registry
+                <Suspense fallback={<LoadingFallback />}>
+                  {(() => {
+                    const Component = componentRegistry[route.registryKey]
+                    return <Component />
+                  })()}
+                </Suspense>
+              ) : (
+                // New dynamic module loaded from file path
+                <DynamicComponentLoader filePath={route.filePath || ''} />
+              )
             }
           />
         ))}
