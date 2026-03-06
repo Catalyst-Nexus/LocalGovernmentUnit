@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BaseDialog, FormInput } from '@/components/ui/dialog';
 import type { LeaveApplication } from '@/types/hr.types';
 import type { LeaveSubtype } from '@/services/hrService';
@@ -45,6 +45,14 @@ const LeaveDialog = ({
   const [employees, setEmployees] = useState<PersonnelOption[]>([]);
   const [leaveTypes, setLeaveTypes] = useState<LeaveSubtype[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  
+  // Searchable employee dropdown states
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+  const [filteredEmployees, setFilteredEmployees] = useState<PersonnelOption[]>([]);
+  
+  // Ref for click-outside detection
+  const employeeDropdownRef = useRef<HTMLDivElement>(null);
 
   // Load dropdown data
   useEffect(() => {
@@ -53,10 +61,29 @@ const LeaveDialog = ({
     }
   }, [open]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(event.target as Node)) {
+        setShowEmployeeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Populate form when editing
   useEffect(() => {
     if (leave) {
       setEmployeeId(leave.employee_id);
+      // Find and set employee name for search display
+      const employee = employees.find(emp => emp.id === leave.employee_id);
+      if (employee) {
+        setEmployeeSearch(employee.name);
+      }
       // setLeaveTypeId - would need to map from leave_type code to los_id
       setDateFrom(leave.date_from);
       setDateTo(leave.date_to);
@@ -66,7 +93,7 @@ const LeaveDialog = ({
     } else {
       resetForm();
     }
-  }, [leave]);
+  }, [leave, employees]);
 
   // Auto-calculate days when dates change
   useEffect(() => {
@@ -78,6 +105,18 @@ const LeaveDialog = ({
       setDays(diffDays.toString());
     }
   }, [dateFrom, dateTo]);
+
+  // Filter employees based on search input
+  useEffect(() => {
+    if (employeeSearch.trim() === '') {
+      setFilteredEmployees(employees);
+    } else {
+      const filtered = employees.filter(emp =>
+        emp.name.toLowerCase().includes(employeeSearch.toLowerCase())
+      );
+      setFilteredEmployees(filtered);
+    }
+  }, [employeeSearch, employees]);
 
   const loadDropdownData = async () => {
     setLoadingData(true);
@@ -92,15 +131,29 @@ const LeaveDialog = ({
 
   const resetForm = () => {
     setEmployeeId('');
+    setEmployeeSearch('');
     setLeaveTypeId('');
     setDateFrom('');
     setDateTo('');
     setDays('');
     setReason('');
     setStatus('pending');
+    setShowEmployeeDropdown(false);
+  };
+
+  const handleEmployeeSelect = (employee: PersonnelOption) => {
+    setEmployeeId(employee.id);
+    setEmployeeSearch(employee.name);
+    setShowEmployeeDropdown(false);
   };
 
   const handleSubmit = () => {
+    // Validate form before submitting
+    if (!isFormValid()) {
+      alert('Please fill in all required fields correctly.');
+      return;
+    }
+
     const leaveData: LeaveFormData = {
       per_id: employeeId,
       los_id: leaveTypeId,
@@ -137,27 +190,49 @@ const LeaveDialog = ({
       isLoading={isLoading || loadingData}
     >
       <div className="space-y-4">
-        {/* Employee Selector */}
+        {/* Employee Selector - Searchable */}
         <div className="space-y-1.5">
           <label htmlFor="employee" className="block text-sm font-medium text-foreground">
             Employee
             <span className="text-error ml-1">*</span>
           </label>
-          <select
-            id="employee"
-            className="w-full px-3 py-2.5 border border-border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:border-success"
-            value={employeeId}
-            onChange={(e) => setEmployeeId(e.target.value)}
-            required
-            disabled={loadingData}
-          >
-            <option value="">-- Select an employee --</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative" ref={employeeDropdownRef}>
+            <input
+              id="employee"
+              type="text"
+              placeholder="Search employee by name..."
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:border-success"
+              value={employeeSearch}
+              onChange={(e) => {
+                setEmployeeSearch(e.target.value);
+                setShowEmployeeDropdown(true);
+                if (e.target.value === '') {
+                  setEmployeeId('');
+                }
+              }}
+              onFocus={() => setShowEmployeeDropdown(true)}
+              disabled={loadingData}
+              autoComplete="off"
+            />
+            {showEmployeeDropdown && filteredEmployees.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-background border border-border rounded-lg shadow-lg">
+                {filteredEmployees.map((emp) => (
+                  <div
+                    key={emp.id}
+                    className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                    onClick={() => handleEmployeeSelect(emp)}
+                  >
+                    {emp.name}
+                  </div>
+                ))}
+              </div>
+            )}
+            {showEmployeeDropdown && filteredEmployees.length === 0 && employeeSearch && (
+              <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg px-3 py-2 text-sm text-muted-foreground">
+                No employees found
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Leave Type Selector */}
