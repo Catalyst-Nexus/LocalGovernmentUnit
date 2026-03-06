@@ -16,25 +16,14 @@ import {
   Download,
   Link2,
   Link2Off,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import type { Employee } from "@/types/hr.types";
 import { supabase, isSupabaseConfigured } from "@/services/supabase";
 import LinkAccountDialog from "../components/LinkAccountDialog";
-
-// Raw row shape returned by the Supabase hr.personnel query
-interface PersonnelRow {
-  id: string;
-  first_name: string;
-  middle_name: string;
-  last_name: string;
-  employment_status: Employee["employment_status"];
-  date_hired: string;
-  is_active: boolean;
-  created_at: string;
-  user_id: string | null;
-  position: { id: string; description: string; item_no: string } | null;
-  office: { id: string; description: string } | null;
-}
+import EmployeeDialog, { type EmployeeFormData } from "../components/EmployeeDialog";
+import { createEmployee, updateEmployee, deleteEmployee } from "@/services/hrService";
 
 const fetchPersonnel = async (): Promise<Employee[]> => {
   if (!isSupabaseConfigured() || !supabase) return [];
@@ -57,7 +46,7 @@ const fetchPersonnel = async (): Promise<Employee[]> => {
     return [];
   }
 
-  return ((data as PersonnelRow[]) || []).map((row) => ({
+  return (data || []).map((row: any) => ({
     id: row.id,
     employee_number: row.position?.item_no ?? "—",
     first_name: row.first_name,
@@ -81,6 +70,9 @@ const EmployeeMasterlist = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [linkEmployee, setLinkEmployee] = useState<Employee | null>(null);
+  const [employeeDialogOpen, setEmployeeDialogOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadEmployees = useCallback(async () => {
     setIsLoading(true);
@@ -98,6 +90,60 @@ const EmployeeMasterlist = () => {
     setEmployees((prev) =>
       prev.map((e) => (e.id === personnelId ? { ...e, user_id: userId } : e)),
     );
+  };
+
+  const handleOpenAddDialog = () => {
+    setEditingEmployee(null);
+    setEmployeeDialogOpen(true);
+  };
+
+  const handleOpenEditDialog = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setEmployeeDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setEmployeeDialogOpen(false);
+    setEditingEmployee(null);
+  };
+
+  const handleSubmitEmployee = async (employeeData: EmployeeFormData) => {
+    setIsSaving(true);
+    
+    if (editingEmployee) {
+      // Update existing employee
+      const result = await updateEmployee(editingEmployee.id, employeeData);
+      if (result.success) {
+        await loadEmployees();
+        handleCloseDialog();
+      } else {
+        alert(`Failed to update employee: ${result.error}`);
+      }
+    } else {
+      // Create new employee
+      const result = await createEmployee(employeeData);
+      if (result.success) {
+        await loadEmployees();
+        handleCloseDialog();
+      } else {
+        alert(`Failed to create employee: ${result.error}`);
+      }
+    }
+    
+    setIsSaving(false);
+  };
+
+  const handleDeleteEmployee = async (employee: Employee) => {
+    if (!confirm(`Are you sure you want to delete ${employee.first_name} ${employee.last_name}?`)) {
+      return;
+    }
+
+    const result = await deleteEmployee(employee.id);
+    if (result.success) {
+      await loadEmployees();
+    } else {
+      alert(`Failed to delete employee: ${result.error}`);
+    }
   };
 
   const filtered = employees.filter((e) => {
@@ -162,7 +208,7 @@ const EmployeeMasterlist = () => {
       />
 
       <ActionsBar>
-        <PrimaryButton onClick={() => {}}>
+        <PrimaryButton onClick={handleOpenAddDialog}>
           <Plus className="w-4 h-4" />
           Add Employee
         </PrimaryButton>
@@ -237,12 +283,40 @@ const EmployeeMasterlist = () => {
               </div>
             ),
           },
+          {
+            key: "id",
+            header: "Actions",
+            render: (item) => (
+              <div className="flex items-center gap-1">
+                <IconButton
+                  onClick={() => handleOpenEditDialog(item)}
+                  title="Edit employee"
+                >
+                  <Edit className="w-4 h-4" />
+                </IconButton>
+                <IconButton
+                  onClick={() => handleDeleteEmployee(item)}
+                  title="Delete employee"
+                >
+                  <Trash2 className="w-4 h-4 text-error" />
+                </IconButton>
+              </div>
+            ),
+          },
         ]}
         title={`Employees (${filtered.length})`}
         searchValue={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search by name, number, or position..."
         emptyMessage={isLoading ? "Loading employees…" : "No employees found."}
+      />
+
+      <EmployeeDialog
+        open={employeeDialogOpen}
+        onClose={handleCloseDialog}
+        onSubmit={handleSubmitEmployee}
+        employee={editingEmployee}
+        isLoading={isSaving}
       />
 
       <LinkAccountDialog
