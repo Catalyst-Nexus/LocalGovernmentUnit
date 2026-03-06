@@ -87,7 +87,7 @@ const UserActivation = () => {
       
       if (result.success) {
         // Remove the activated user from the list
-        setPendingUsers(pendingUsers.filter(u => u.id !== selectedUser.id))
+        setPendingUsers(pendingUsers.filter((u: PendingUser) => u.id !== selectedUser.id))
         setShowModal(false)
         setSelectedUser(null)
       } else {
@@ -120,7 +120,7 @@ const UserActivation = () => {
       
       if (result.success) {
         // Remove the rejected user from the list
-        setPendingUsers(pendingUsers.filter(u => u.id !== selectedUser.id))
+        setPendingUsers(pendingUsers.filter((u: PendingUser) => u.id !== selectedUser.id))
         setShowModal(false)
         setSelectedUser(null)
       } else {
