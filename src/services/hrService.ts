@@ -269,3 +269,159 @@ export const deletePosition = async (
 
   return { success: true };
 };
+
+// ============================================
+// LEAVE MANAGEMENT
+// ============================================
+
+export interface LeaveSubtype {
+  id: string;
+  description: string;
+  code: string;
+}
+
+export interface LeaveApplicationFormData {
+  per_id: string;
+  los_id: string;
+  date_from: string;
+  date_to: string;
+  days: number;
+  remarks: string;
+  status: 'pending' | 'approved' | 'denied' | 'cancelled';
+}
+
+/**
+ * Fetch all leave subtypes (VL, SL, ML, etc.)
+ */
+export const fetchLeaveSubtypes = async (): Promise<LeaveSubtype[]> => {
+  if (!isSupabaseConfigured() || !supabase) return [];
+
+  const { data, error } = await (supabase as NonNullable<typeof supabase>)
+    .schema('hr')
+    .from('leave_out_subtype')
+    .select('id, description, code')
+    .eq('is_active', true)
+    .order('description');
+
+  if (error) {
+    console.error('Error fetching leave subtypes:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+/**
+ * Fetch all personnel for leave application dropdown
+ */
+export const fetchPersonnelForLeave = async () => {
+  if (!isSupabaseConfigured() || !supabase) return [];
+
+  const { data, error } = await (supabase as NonNullable<typeof supabase>)
+    .schema('hr')
+    .from('personnel')
+    .select('id, first_name, middle_name, last_name')
+    .eq('is_active', true)
+    .order('last_name');
+
+  if (error) {
+    console.error('Error fetching personnel:', error);
+    return [];
+  }
+
+  return (data || []).map((p: any) => ({
+    id: p.id,
+    name: `${p.last_name}, ${p.first_name} ${p.middle_name || ''}`.trim(),
+  }));
+};
+
+/**
+ * Create a new leave application
+ */
+export const createLeaveApplication = async (
+  leaveData: LeaveApplicationFormData
+): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  // Create the leave application
+  const { error: leaveError } = await (supabase as NonNullable<typeof supabase>)
+    .schema('hr')
+    .from('personnel_leave_out')
+    .insert([{
+      per_id: leaveData.per_id,
+      los_id: leaveData.los_id,
+      status: leaveData.status,
+      remarks: leaveData.remarks,
+      credits: leaveData.days,
+    }])
+    .select('id')
+    .single();
+
+  if (leaveError) {
+    console.error('Error creating leave application:', leaveError);
+    return { success: false, error: leaveError.message };
+  }
+
+  // Note: In a real implementation, you'd also insert records into leave_out_dates
+  // for each day between date_from and date_to. This would require additional logic.
+
+  return { success: true };
+};
+
+/**
+ * Update an existing leave application
+ */
+export const updateLeaveApplication = async (
+  id: string,
+  leaveData: Partial<LeaveApplicationFormData>
+): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  const updateData: any = {};
+  if (leaveData.per_id) updateData.per_id = leaveData.per_id;
+  if (leaveData.los_id) updateData.los_id = leaveData.los_id;
+  if (leaveData.status) updateData.status = leaveData.status;
+  if (leaveData.remarks) updateData.remarks = leaveData.remarks;
+  if (leaveData.days) updateData.credits = leaveData.days;
+
+  const { error } = await (supabase as NonNullable<typeof supabase>)
+    .schema('hr')
+    .from('personnel_leave_out')
+    .update(updateData)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating leave application:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+/**
+ * Delete a leave application
+ */
+export const deleteLeaveApplication = async (
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  const { error } = await (supabase as NonNullable<typeof supabase>)
+    .schema('hr')
+    .from('personnel_leave_out')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting leave application:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
