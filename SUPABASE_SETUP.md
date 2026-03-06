@@ -30,22 +30,28 @@ For each bucket, you need to set up policies to allow uploads and reads:
 Go to Storage → system_logo → Policies and create these policies:
 
 **Policy 1: Allow public read access**
+
 ```sql
-CREATE POLICY "Public Access"
+DROP POLICY IF EXISTS "system_logo Public Access" ON storage.objects;
+CREATE POLICY "system_logo Public Access"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'system_logo');
 ```
 
 **Policy 2: Allow authenticated uploads**
+
 ```sql
-CREATE POLICY "Authenticated users can upload"
+DROP POLICY IF EXISTS "system_logo Authenticated users can upload" ON storage.objects;
+CREATE POLICY "system_logo Authenticated users can upload"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'system_logo');
 ```
 
 **Policy 3: Allow authenticated updates**
+
 ```sql
-CREATE POLICY "Authenticated users can update"
+DROP POLICY IF EXISTS "system_logo Authenticated users can update" ON storage.objects;
+CREATE POLICY "system_logo Authenticated users can update"
 ON storage.objects FOR UPDATE
 USING (bucket_id = 'system_logo');
 ```
@@ -54,23 +60,32 @@ USING (bucket_id = 'system_logo');
 
 Go to Storage → profile_picture → Policies and create these policies:
 
+> **Note:** Policy names must be unique across all buckets on `storage.objects`.
+> These use `profile_picture` prefixed names to avoid conflicts with `system_logo` policies.
+
 **Policy 1: Allow public read access**
+
 ```sql
-CREATE POLICY "Public Access"
+DROP POLICY IF EXISTS "profile_picture Public Access" ON storage.objects;
+CREATE POLICY "profile_picture Public Access"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'profile_picture');
 ```
 
 **Policy 2: Allow authenticated uploads**
+
 ```sql
-CREATE POLICY "Authenticated users can upload"
+DROP POLICY IF EXISTS "profile_picture Authenticated users can upload" ON storage.objects;
+CREATE POLICY "profile_picture Authenticated users can upload"
 ON storage.objects FOR INSERT
 WITH CHECK (bucket_id = 'profile_picture');
 ```
 
 **Policy 3: Allow authenticated updates**
+
 ```sql
-CREATE POLICY "Authenticated users can update"
+DROP POLICY IF EXISTS "profile_picture Authenticated users can update" ON storage.objects;
+CREATE POLICY "profile_picture Authenticated users can update"
 ON storage.objects FOR UPDATE
 USING (bucket_id = 'profile_picture');
 ```
@@ -85,6 +100,7 @@ USING (bucket_id = 'profile_picture');
 ## 5. Configure Environment Variables
 
 1. Copy `.env.example` to `.env`:
+
    ```bash
    cp .env.example .env
    ```
@@ -106,6 +122,7 @@ npm run dev
 ## Demo Mode
 
 If you don't configure Supabase, the application will run in demo mode:
+
 - Images will be stored temporarily in browser memory
 - Images will be lost on page refresh
 - You'll see a warning message when uploading
@@ -113,6 +130,7 @@ If you don't configure Supabase, the application will run in demo mode:
 ## Usage
 
 Once configured:
+
 - Go to **Settings** to upload your system logo
 - Go to **User Profile** to upload your profile picture
 - The logo will appear in the header and sidebar
@@ -121,14 +139,17 @@ Once configured:
 ## Troubleshooting
 
 ### Images not uploading?
+
 - Check that your Supabase URL and API key are correct
 - Verify that the storage buckets exist and are public
 - Check that the policies are correctly set up
 
 ### Images not displaying?
+
 - Check browser console for errors
 - Verify that the bucket names match exactly: `system_logo` and `profile_picture`
 - Ensure the buckets are set to public
 
 ### Need help?
+
 Consult the [Supabase Storage Documentation](https://supabase.com/docs/guides/storage)

@@ -99,7 +99,7 @@ const Sidebar = () => {
           <div className="w-8 h-8 bg-primary rounded-lg shrink-0" />
         )}
         {!sidebarCollapsed && (
-          <span className="text-xl font-bold text-primary">Animal Farm</span>
+          <span className="text-xl font-bold text-primary">LGU Ims System</span>
         )}
       </div>
 

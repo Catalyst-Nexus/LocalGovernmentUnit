@@ -85,16 +85,7 @@ import {
   ChevronRight,
   ChevronUp,
   ChevronDown,
-  // Animal Farm & Health Icons
-  Pill,
-  Apple,
-  Beef,
-  Egg,
-  Drumstick,
-  Bug,
-  Leaf,
-  Sprout,
-  Trees,
+  // Utility & LGU Icons
   Warehouse,
   ClipboardCheck,
   Calculator,
@@ -129,13 +120,6 @@ import {
   Factory,
   Truck,
   Scale,
-  Baby,
-  Syringe,
-  Stethoscope,
-  CrosshairIcon,
-  Footprints,
-  Mountain,
-  Wheat,
   Milestone,
   Boxes,
   Container,
@@ -152,10 +136,23 @@ import {
   Gauge,
   Flame,
   Snowflake,
-  Fence,
-  TreePine,
   LucideIcon,
-} from 'lucide-react'
+  // LGU-IMS Icons
+  Landmark,
+  PlusCircle,
+  Globe,
+  ShoppingBag,
+  ArrowRightLeft,
+  FileCheck,
+  FileOutput,
+  FileBarChart,
+  Building2,
+  UserCheck,
+  Briefcase,
+  CalendarOff,
+  ShieldAlert,
+  GraduationCap,
+} from "lucide-react";
 
 const iconMap: Record<string, LucideIcon> = {
   // Dashboard & Navigation
@@ -163,23 +160,23 @@ const iconMap: Record<string, LucideIcon> = {
   home: Home,
   menu: ClipboardList,
   folder: Folder,
-  
+
   // User & Profile
   profile: User,
   users: Users,
-  
+
   // RBAC & Security
   role: Shield,
   activation: Key,
   lock: Lock,
   unlock: Unlock,
   shield: Shield,
-  
+
   // Management & Settings
   module: Cog,
   settings: Settings,
   cog: Cog,
-  
+
   // Documents & Files
   assignment: ClipboardList,
   file: FileText,
@@ -190,43 +187,43 @@ const iconMap: Record<string, LucideIcon> = {
   book: Book,
   bookopen: BookOpen,
   newspaper: Newspaper,
-  
+
   // Analytics & Reports
   chart: BarChart3,
   analytics: BarChart3,
   trending: TrendingUp,
   activity: Activity,
-  
+
   // Communication
   mail: Mail,
   message: MessageSquare,
   bell: Bell,
   phone: Phone,
-  
+
   // Calendar & Schedule
   calendar: Calendar,
-  
+
   // Search & Navigation
   search: Search,
   compass: Compass,
   map: Map,
   mappin: MapPin,
   navigation: Navigation,
-  
+
   // Tags & Labels
   tag: Tag,
   bookmark: Bookmark,
   flag: Flag,
-  
+
   // Storage & Archive
   archive: Archive,
   database: Database,
   package: Package,
-  
+
   // Commerce
   cart: ShoppingCart,
   dollar: DollarSign,
-  
+
   // Status & Indicators
   heart: Heart,
   star: Star,
@@ -237,28 +234,28 @@ const iconMap: Record<string, LucideIcon> = {
   alert: AlertCircle,
   info: Info,
   help: HelpCircle,
-  
+
   // Media
   camera: Camera,
   photo: Image,
   film: Film,
   music: Music,
   headphones: Headphones,
-  
+
   // Devices
   smartphone: Smartphone,
   tablet: Tablet,
   monitor: Monitor,
   printer: Printer,
-  
+
   // Connectivity
   wifi: Wifi,
   bluetooth: Bluetooth,
-  
+
   // Power & Energy
   battery: Battery,
   zap: Zap,
-  
+
   // Weather & Environment
   sun: Sun,
   moon: Moon,
@@ -267,10 +264,10 @@ const iconMap: Record<string, LucideIcon> = {
   wind: Wind,
   thermometer: Thermometer,
   droplet: Droplet,
-  
+
   // Food & Beverage
   coffee: Coffee,
-  
+
   // Actions
   download: Download,
   upload: Upload,
@@ -283,52 +280,16 @@ const iconMap: Record<string, LucideIcon> = {
   plus: Plus,
   minus: Minus,
   x: X,
-  
+
   // Arrows & Directions
   left: ChevronLeft,
   right: ChevronRight,
   up: ChevronUp,
   down: ChevronDown,
-  
-  // Animal Farm & Health
-  pill: Pill,
-  vitamin: Pill,
-  medicine: Pill,
-  apple: Apple,
-  beef: Beef,
-  egg: Egg,
-  drumstick: Drumstick,
-  meat: Drumstick,
-  bug: Bug,
-  pest: Bug,
-  leaf: Leaf,
-  sprout: Sprout,
-  grow: Sprout,
-  trees: Trees,
-  forest: Trees,
+
+  // General Utility
   warehouse: Warehouse,
   storage: Warehouse,
-  syringe: Syringe,
-  vaccine: Syringe,
-  injection: Syringe,
-  stethoscope: Stethoscope,
-  health: Stethoscope,
-  checkup: Stethoscope,
-  baby: Baby,
-  offspring: Baby,
-  footprints: Footprints,
-  track: Footprints,
-  mountain: Mountain,
-  terrain: Mountain,
-  wheat: Wheat,
-  grain: Wheat,
-  crop: Wheat,
-  fence: Fence,
-  enclosure: Fence,
-  treepine: TreePine,
-  pine: TreePine,
-  
-  // Livestock & Farm Operations
   truck: Truck,
   transport: Truck,
   delivery: Truck,
@@ -349,7 +310,7 @@ const iconMap: Record<string, LucideIcon> = {
   snowflake: Snowflake,
   cold: Snowflake,
   freeze: Snowflake,
-  
+
   // Inventory & Organization
   boxes: Boxes,
   container: Container,
@@ -368,7 +329,7 @@ const iconMap: Record<string, LucideIcon> = {
   layout: Grid,
   layers: Layers,
   stack: Layers,
-  
+
   // Financial
   receipt: Receipt,
   invoice: Receipt,
@@ -379,7 +340,7 @@ const iconMap: Record<string, LucideIcon> = {
   creditcard: CreditCard,
   card: CreditCard,
   payment: CreditCard,
-  
+
   // Data & Analysis
   calculator: Calculator,
   calculate: Calculator,
@@ -390,14 +351,14 @@ const iconMap: Record<string, LucideIcon> = {
   ascending: SortAsc,
   sortdesc: SortDesc,
   descending: SortDesc,
-  
+
   // Status Badges
   badgecheck: BadgeCheck,
   verified: BadgeCheck,
   badgealert: BadgeAlert,
   warning: BadgeAlert,
   badgeinfo: BadgeInfo,
-  
+
   // Actions & Controls
   refreshcw: RefreshCw,
   refresh: RefreshCw,
@@ -419,7 +380,7 @@ const iconMap: Record<string, LucideIcon> = {
   volume: Volume2,
   sound: Volume2,
   audio: Volume2,
-  
+
   // Status Indicators
   alerttriangle: AlertTriangle,
   caution: AlertTriangle,
@@ -429,7 +390,7 @@ const iconMap: Record<string, LucideIcon> = {
   xcircle: XCircle,
   error: XCircle,
   failed: XCircle,
-  
+
   // Time & Schedule
   clock: Clock,
   time: Clock,
@@ -438,7 +399,7 @@ const iconMap: Record<string, LucideIcon> = {
   hourglass: Hourglass,
   waiting: Hourglass,
   pending: Hourglass,
-  
+
   // Media Controls
   playcircle: PlayCircle,
   play: PlayCircle,
@@ -452,278 +413,271 @@ const iconMap: Record<string, LucideIcon> = {
   skipback: SkipBack,
   previous: SkipBack,
   back: SkipBack,
-  crosshair: CrosshairIcon,
-  target2: CrosshairIcon,
-  aim: CrosshairIcon,
-}
+
+  // LGU-IMS Module Icons
+  landmark: Landmark,
+  pluscircle: PlusCircle,
+  globe: Globe,
+  shoppingbag: ShoppingBag,
+  arrowrightleft: ArrowRightLeft,
+  filecheck: FileCheck,
+  fileoutput: FileOutput,
+  filebarchart: FileBarChart,
+  building2: Building2,
+  usercheck: UserCheck,
+  briefcase: Briefcase,
+  calendaroff: CalendarOff,
+  shieldalert: ShieldAlert,
+  graduationcap: GraduationCap,
+};
 
 // Icon display names for better UI
 const iconDisplayNames: Record<string, string> = {
-  dashboard: 'Dashboard',
-  home: 'Home',
-  menu: 'Menu',
-  folder: 'Folder',
-  profile: 'Profile',
-  users: 'Users',
-  role: 'Role',
-  activation: 'Activation',
-  lock: 'Lock',
-  unlock: 'Unlock',
-  shield: 'Shield',
-  module: 'Module',
-  settings: 'Settings',
-  cog: 'Cog',
-  assignment: 'Assignment',
-  file: 'File',
-  document: 'Document',
-  spreadsheet: 'Spreadsheet',
-  image: 'Image',
-  fileplus: 'File Plus',
-  book: 'Book',
-  bookopen: 'Book Open',
-  newspaper: 'Newspaper',
-  chart: 'Chart',
-  analytics: 'Analytics',
-  trending: 'Trending',
-  activity: 'Activity',
-  mail: 'Mail',
-  message: 'Message',
-  bell: 'Notification',
-  phone: 'Phone',
-  calendar: 'Calendar',
-  search: 'Search',
-  compass: 'Compass',
-  map: 'Map',
-  mappin: 'Map Pin',
-  navigation: 'Navigation',
-  tag: 'Tag',
-  bookmark: 'Bookmark',
-  flag: 'Flag',
-  archive: 'Archive',
-  database: 'Database',
-  package: 'Package',
-  cart: 'Shopping Cart',
-  dollar: 'Dollar',
-  heart: 'Heart',
-  star: 'Star',
-  award: 'Award',
-  target: 'Target',
-  check: 'Check',
-  checksquare: 'Check Square',
-  alert: 'Alert',
-  info: 'Info',
-  help: 'Help',
-  camera: 'Camera',
-  photo: 'Photo',
-  film: 'Film',
-  music: 'Music',
-  headphones: 'Headphones',
-  smartphone: 'Smartphone',
-  tablet: 'Tablet',
-  monitor: 'Monitor',
-  printer: 'Printer',
-  wifi: 'WiFi',
-  bluetooth: 'Bluetooth',
-  battery: 'Battery',
-  zap: 'Zap',
-  sun: 'Sun',
-  moon: 'Moon',
-  cloud: 'Cloud',
-  cloudrain: 'Cloud Rain',
-  wind: 'Wind',
-  thermometer: 'Thermometer',
-  droplet: 'Droplet',
-  coffee: 'Coffee',
-  download: 'Download',
-  upload: 'Upload',
-  share: 'Share',
-  link: 'Link',
-  eye: 'Eye',
-  eyeoff: 'Eye Off',
-  edit: 'Edit',
-  trash: 'Trash',
-  plus: 'Plus',
-  minus: 'Minus',
-  x: 'Close',
-  left: 'Left',
-  right: 'Right',
-  up: 'Up',
-  down: 'Down',
-  
-  // Animal Farm & Health
-  pill: 'Pill',
-  vitamin: 'Vitamin',
-  medicine: 'Medicine',
-  apple: 'Apple',
-  beef: 'Beef',
-  egg: 'Egg',
-  drumstick: 'Drumstick',
-  meat: 'Meat',
-  bug: 'Bug',
-  pest: 'Pest',
-  leaf: 'Leaf',
-  sprout: 'Sprout',
-  grow: 'Grow',
-  trees: 'Trees',
-  forest: 'Forest',
-  warehouse: 'Warehouse',
-  storage: 'Storage',
-  syringe: 'Syringe',
-  vaccine: 'Vaccine',
-  injection: 'Injection',
-  stethoscope: 'Stethoscope',
-  health: 'Health',
-  checkup: 'Checkup',
-  baby: 'Baby',
-  offspring: 'Offspring',
-  footprints: 'Footprints',
-  track: 'Track',
-  mountain: 'Mountain',
-  terrain: 'Terrain',
-  wheat: 'Wheat',
-  grain: 'Grain',
-  crop: 'Crop',
-  fence: 'Fence',
-  enclosure: 'Enclosure',
-  treepine: 'Tree Pine',
-  pine: 'Pine',
-  
-  // Livestock & Farm Operations
-  truck: 'Truck',
-  transport: 'Transport',
-  delivery: 'Delivery',
-  scale: 'Scale',
-  weight: 'Weight',
-  weigh: 'Weigh',
-  factory: 'Factory',
-  plant: 'Plant',
-  facility: 'Facility',
-  milestone: 'Milestone',
-  marker: 'Marker',
-  gauge: 'Gauge',
-  meter: 'Meter',
-  measure: 'Measure',
-  flame: 'Flame',
-  heat: 'Heat',
-  fire: 'Fire',
-  snowflake: 'Snowflake',
-  cold: 'Cold',
-  freeze: 'Freeze',
-  
+  dashboard: "Dashboard",
+  home: "Home",
+  menu: "Menu",
+  folder: "Folder",
+  profile: "Profile",
+  users: "Users",
+  role: "Role",
+  activation: "Activation",
+  lock: "Lock",
+  unlock: "Unlock",
+  shield: "Shield",
+  module: "Module",
+  settings: "Settings",
+  cog: "Cog",
+  assignment: "Assignment",
+  file: "File",
+  document: "Document",
+  spreadsheet: "Spreadsheet",
+  image: "Image",
+  fileplus: "File Plus",
+  book: "Book",
+  bookopen: "Book Open",
+  newspaper: "Newspaper",
+  chart: "Chart",
+  analytics: "Analytics",
+  trending: "Trending",
+  activity: "Activity",
+  mail: "Mail",
+  message: "Message",
+  bell: "Notification",
+  phone: "Phone",
+  calendar: "Calendar",
+  search: "Search",
+  compass: "Compass",
+  map: "Map",
+  mappin: "Map Pin",
+  navigation: "Navigation",
+  tag: "Tag",
+  bookmark: "Bookmark",
+  flag: "Flag",
+  archive: "Archive",
+  database: "Database",
+  package: "Package",
+  cart: "Shopping Cart",
+  dollar: "Dollar",
+  heart: "Heart",
+  star: "Star",
+  award: "Award",
+  target: "Target",
+  check: "Check",
+  checksquare: "Check Square",
+  alert: "Alert",
+  info: "Info",
+  help: "Help",
+  camera: "Camera",
+  photo: "Photo",
+  film: "Film",
+  music: "Music",
+  headphones: "Headphones",
+  smartphone: "Smartphone",
+  tablet: "Tablet",
+  monitor: "Monitor",
+  printer: "Printer",
+  wifi: "WiFi",
+  bluetooth: "Bluetooth",
+  battery: "Battery",
+  zap: "Zap",
+  sun: "Sun",
+  moon: "Moon",
+  cloud: "Cloud",
+  cloudrain: "Cloud Rain",
+  wind: "Wind",
+  thermometer: "Thermometer",
+  droplet: "Droplet",
+  coffee: "Coffee",
+  download: "Download",
+  upload: "Upload",
+  share: "Share",
+  link: "Link",
+  eye: "Eye",
+  eyeoff: "Eye Off",
+  edit: "Edit",
+  trash: "Trash",
+  plus: "Plus",
+  minus: "Minus",
+  x: "Close",
+  left: "Left",
+  right: "Right",
+  up: "Up",
+  down: "Down",
+
+  // General Utility
+  warehouse: "Warehouse",
+  storage: "Storage",
+  truck: "Truck",
+  transport: "Transport",
+  delivery: "Delivery",
+  scale: "Scale",
+  weight: "Weight",
+  weigh: "Weigh",
+  factory: "Factory",
+  plant: "Plant",
+  facility: "Facility",
+  milestone: "Milestone",
+  marker: "Marker",
+  gauge: "Gauge",
+  meter: "Meter",
+  measure: "Measure",
+  flame: "Flame",
+  heat: "Heat",
+  fire: "Fire",
+  snowflake: "Snowflake",
+  cold: "Cold",
+  freeze: "Freeze",
+
   // Inventory & Organization
-  boxes: 'Boxes',
-  container: 'Container',
-  listchecks: 'List Checks',
-  checklist: 'Checklist',
-  tasks: 'Tasks',
-  clipboardcheck: 'Clipboard Check',
-  inspect: 'Inspect',
-  inspection: 'Inspection',
-  clipboardtype: 'Clipboard Type',
-  form: 'Form',
-  list: 'List',
-  items: 'Items',
-  table: 'Table',
-  grid: 'Grid',
-  layout: 'Layout',
-  layers: 'Layers',
-  stack: 'Stack',
-  
+  boxes: "Boxes",
+  container: "Container",
+  listchecks: "List Checks",
+  checklist: "Checklist",
+  tasks: "Tasks",
+  clipboardcheck: "Clipboard Check",
+  inspect: "Inspect",
+  inspection: "Inspection",
+  clipboardtype: "Clipboard Type",
+  form: "Form",
+  list: "List",
+  items: "Items",
+  table: "Table",
+  grid: "Grid",
+  layout: "Layout",
+  layers: "Layers",
+  stack: "Stack",
+
   // Financial
-  receipt: 'Receipt',
-  invoice: 'Invoice',
-  banknote: 'Banknote',
-  money: 'Money',
-  coins: 'Coins',
-  wallet: 'Wallet',
-  creditcard: 'Credit Card',
-  card: 'Card',
-  payment: 'Payment',
-  
+  receipt: "Receipt",
+  invoice: "Invoice",
+  banknote: "Banknote",
+  money: "Money",
+  coins: "Coins",
+  wallet: "Wallet",
+  creditcard: "Credit Card",
+  card: "Card",
+  payment: "Payment",
+
   // Data & Analysis
-  calculator: 'Calculator',
-  calculate: 'Calculate',
-  piechart: 'Pie Chart',
-  pie: 'Pie',
-  filter: 'Filter',
-  sortasc: 'Sort Ascending',
-  ascending: 'Ascending',
-  sortdesc: 'Sort Descending',
-  descending: 'Descending',
-  
+  calculator: "Calculator",
+  calculate: "Calculate",
+  piechart: "Pie Chart",
+  pie: "Pie",
+  filter: "Filter",
+  sortasc: "Sort Ascending",
+  ascending: "Ascending",
+  sortdesc: "Sort Descending",
+  descending: "Descending",
+
   // Status Badges
-  badgecheck: 'Badge Check',
-  verified: 'Verified',
-  badgealert: 'Badge Alert',
-  warning: 'Warning',
-  badgeinfo: 'Badge Info',
-  
+  badgecheck: "Badge Check",
+  verified: "Verified",
+  badgealert: "Badge Alert",
+  warning: "Warning",
+  badgeinfo: "Badge Info",
+
   // Actions & Controls
-  refreshcw: 'Refresh',
-  refresh: 'Refresh',
-  reload: 'Reload',
-  rotateccw: 'Rotate CCW',
-  undo: 'Undo',
-  save: 'Save',
-  copy: 'Copy',
-  duplicate: 'Duplicate',
-  scissors: 'Scissors',
-  cut: 'Cut',
-  paperclip: 'Paperclip',
-  attach: 'Attach',
-  attachment: 'Attachment',
-  send: 'Send',
-  submit: 'Submit',
-  power: 'Power',
-  onoff: 'On/Off',
-  volume: 'Volume',
-  sound: 'Sound',
-  audio: 'Audio',
-  
+  refreshcw: "Refresh",
+  refresh: "Refresh",
+  reload: "Reload",
+  rotateccw: "Rotate CCW",
+  undo: "Undo",
+  save: "Save",
+  copy: "Copy",
+  duplicate: "Duplicate",
+  scissors: "Scissors",
+  cut: "Cut",
+  paperclip: "Paperclip",
+  attach: "Attach",
+  attachment: "Attachment",
+  send: "Send",
+  submit: "Submit",
+  power: "Power",
+  onoff: "On/Off",
+  volume: "Volume",
+  sound: "Sound",
+  audio: "Audio",
+
   // Status Indicators
-  alerttriangle: 'Alert Triangle',
-  caution: 'Caution',
-  checkcircle: 'Check Circle',
-  success: 'Success',
-  complete: 'Complete',
-  xcircle: 'X Circle',
-  error: 'Error',
-  failed: 'Failed',
-  
+  alerttriangle: "Alert Triangle",
+  caution: "Caution",
+  checkcircle: "Check Circle",
+  success: "Success",
+  complete: "Complete",
+  xcircle: "X Circle",
+  error: "Error",
+  failed: "Failed",
+
   // Time & Schedule
-  clock: 'Clock',
-  time: 'Time',
-  timer: 'Timer',
-  countdown: 'Countdown',
-  hourglass: 'Hourglass',
-  waiting: 'Waiting',
-  pending: 'Pending',
-  
+  clock: "Clock",
+  time: "Time",
+  timer: "Timer",
+  countdown: "Countdown",
+  hourglass: "Hourglass",
+  waiting: "Waiting",
+  pending: "Pending",
+
   // Media Controls
-  playcircle: 'Play Circle',
-  play: 'Play',
-  start: 'Start',
-  pausecircle: 'Pause Circle',
-  pause: 'Pause',
-  stopcircle: 'Stop Circle',
-  stop: 'Stop',
-  skipforward: 'Skip Forward',
-  next: 'Next',
-  skipback: 'Skip Back',
-  previous: 'Previous',
-  back: 'Back',
-  crosshair: 'Crosshair',
-  target2: 'Target',
-  aim: 'Aim',
-}
+  playcircle: "Play Circle",
+  play: "Play",
+  start: "Start",
+  pausecircle: "Pause Circle",
+  pause: "Pause",
+  stopcircle: "Stop Circle",
+  stop: "Stop",
+  skipforward: "Skip Forward",
+  next: "Next",
+  skipback: "Skip Back",
+  previous: "Previous",
+  back: "Back",
+
+  // LGU-IMS Module Icons
+  landmark: "Landmark",
+  pluscircle: "Plus Circle",
+  globe: "Globe",
+  shoppingbag: "Shopping Bag",
+  arrowrightleft: "Arrow Right Left",
+  filecheck: "File Check",
+  fileoutput: "File Output",
+  filebarchart: "File Bar Chart",
+  building2: "Building",
+  usercheck: "User Check",
+  briefcase: "Briefcase",
+  calendaroff: "Calendar Off",
+  shieldalert: "Shield Alert",
+  graduationcap: "Graduation Cap",
+};
 
 export const getIconByName = (iconName: string | null): LucideIcon => {
-  if (!iconName) return Cog // Default icon
-  return iconMap[iconName.toLowerCase()] || Cog
-}
+  if (!iconName) return Cog; // Default icon
+  return iconMap[iconName.toLowerCase()] || Cog;
+};
 
 export const getIconDisplayName = (iconName: string): string => {
-  return iconDisplayNames[iconName.toLowerCase()] || iconName.charAt(0).toUpperCase() + iconName.slice(1)
-}
+  return (
+    iconDisplayNames[iconName.toLowerCase()] ||
+    iconName.charAt(0).toUpperCase() + iconName.slice(1)
+  );
+};
 
-export const availableIcons = Object.keys(iconMap).sort()
+export const availableIcons = Object.keys(iconMap).sort();

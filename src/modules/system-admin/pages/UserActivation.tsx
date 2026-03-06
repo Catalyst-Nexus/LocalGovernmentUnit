@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { UserActivationList, UserActivationDialog } from "@/components/rbac";
+import {
+  UserActivationList,
+  UserActivationDialog,
+} from "@/modules/system-admin/components";
 import {
   PageHeader,
   StatsRow,

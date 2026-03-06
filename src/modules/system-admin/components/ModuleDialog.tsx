@@ -1,25 +1,25 @@
-import { BaseDialog, FormInput } from '@/components/ui/dialog'
-import { getIconDisplayName } from '@/lib/iconMap'
+import { BaseDialog, FormInput } from "@/components/ui/dialog";
+import { getIconDisplayName } from "@/lib/iconMap";
 
 interface ModuleDialogProps {
-  open: boolean
-  onClose: () => void
-  onSubmit: () => void
-  moduleName: string
-  onModuleNameChange: (value: string) => void
-  routePath: string
-  onRoutePathChange: (value: string) => void
-  selectedIcon: string
-  onSelectedIconChange: (value: string) => void
-  filePath: string
-  onFilePathChange: (value: string) => void
-  category: string
-  onCategoryChange: (value: string) => void
-  isActive: boolean
-  onIsActiveChange: (value: boolean) => void
-  availableIcons: string[]
-  isLoading?: boolean
-  editMode?: boolean
+  open: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  moduleName: string;
+  onModuleNameChange: (value: string) => void;
+  routePath: string;
+  onRoutePathChange: (value: string) => void;
+  selectedIcon: string;
+  onSelectedIconChange: (value: string) => void;
+  filePath: string;
+  onFilePathChange: (value: string) => void;
+  category: string;
+  onCategoryChange: (value: string) => void;
+  isActive: boolean;
+  onIsActiveChange: (value: boolean) => void;
+  availableIcons: string[];
+  isLoading?: boolean;
+  editMode?: boolean;
 }
 
 const ModuleDialog = ({
@@ -46,9 +46,9 @@ const ModuleDialog = ({
     <BaseDialog
       open={open}
       onClose={onClose}
-      title={editMode ? 'Edit Module' : 'Add New Module'}
+      title={editMode ? "Edit Module" : "Add New Module"}
       onSubmit={onSubmit}
-      submitLabel={editMode ? 'Save Changes' : 'Add Module'}
+      submitLabel={editMode ? "Save Changes" : "Add Module"}
       isLoading={isLoading}
     >
       <FormInput
@@ -70,7 +70,7 @@ const ModuleDialog = ({
       <FormInput
         id="file-path"
         label="File Path"
-        placeholder="e.g., views/rbac/UserManagement"
+        placeholder="e.g., modules/system-admin/pages/UserManagement"
         value={filePath}
         onChange={onFilePathChange}
         required
@@ -78,11 +78,11 @@ const ModuleDialog = ({
       <div className="text-xs text-muted space-y-1 -mt-1">
         <p>Available component paths:</p>
         <ul className="list-disc list-inside ml-2 space-y-0.5">
-          <li>views/rbac/UserActivation</li>
-          <li>views/rbac/RoleManagement</li>
-          <li>views/rbac/UserManagement</li>
-          <li>views/rbac/ModuleManagement</li>
-          <li>views/rbac/FacilitiesManagement</li>
+          <li>modules/system-admin/pages/UserActivation</li>
+          <li>modules/system-admin/pages/RoleManagement</li>
+          <li>modules/system-admin/pages/UserManagement</li>
+          <li>modules/system-admin/pages/ModuleManagement</li>
+          <li>modules/system-admin/pages/FacilitiesManagement</li>
         </ul>
         <p className="italic">Register new components in Dashboard.tsx</p>
       </div>
@@ -95,7 +95,8 @@ const ModuleDialog = ({
         required
       />
       <div className="text-xs text-muted -mt-1">
-        Category name for grouping modules in the sidebar (e.g., "RBAC Management", "Inventory")
+        Category name for grouping modules in the sidebar (e.g., "RBAC
+        Management", "Inventory")
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="icon" className="text-sm font-medium text-foreground">
@@ -124,12 +125,15 @@ const ModuleDialog = ({
           onChange={(e) => onIsActiveChange(e.target.checked)}
           className="w-4 h-4 border border-border rounded bg-surface cursor-pointer"
         />
-        <label htmlFor="is-active" className="text-sm font-medium text-foreground cursor-pointer">
+        <label
+          htmlFor="is-active"
+          className="text-sm font-medium text-foreground cursor-pointer"
+        >
           Active
         </label>
       </div>
     </BaseDialog>
-  )
-}
+  );
+};
 
-export default ModuleDialog
+export default ModuleDialog;

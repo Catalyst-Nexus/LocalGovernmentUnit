@@ -124,9 +124,6 @@ const Register = () => {
         <h1 className="text-center text-3xl font-bold text-primary mb-2">
           Create Account
         </h1>
-        <p className="text-center text-sm text-muted mb-6">
-          Join the Animal Farm System
-        </p>
 
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
