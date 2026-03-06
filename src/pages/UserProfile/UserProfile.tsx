@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { uploadImage } from "@/services/imageUpload";
 import { supabase, isSupabaseConfigured } from "@/services/supabase";
+import { useResolvedAvatarUrl } from "@/hooks/useResolvedAvatarUrl";
 import { Alert } from "@/components/ui";
 import {
   Shield,
@@ -30,34 +31,11 @@ const UserProfile = () => {
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [pictureSuccess, setPictureSuccess] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const avatarUrl = useResolvedAvatarUrl(
+    user?.profilePicture,
+    "profile_picture",
+  );
   const pictureInputRef = useRef<HTMLInputElement>(null);
-
-  // Resolve a signed URL from the stored path whenever profilePicture changes.
-  // Signed URLs work for both public and private buckets — avoids 403s from
-  // getPublicUrl when the bucket's public access isn't enabled.
-  useEffect(() => {
-    const resolveAvatarUrl = async () => {
-      const path = user?.profilePicture;
-      if (!path || !isSupabaseConfigured() || !supabase) {
-        setAvatarUrl(null);
-        return;
-      }
-      const { data, error } = await supabase.storage
-        .from("profile_picture")
-        .createSignedUrl(path, 3600); // 1-hour signed URL
-      if (!error && data?.signedUrl) {
-        setAvatarUrl(data.signedUrl);
-      } else {
-        // Bucket is public — fall back to public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("profile_picture").getPublicUrl(path);
-        setAvatarUrl(publicUrl);
-      }
-    };
-    resolveAvatarUrl();
-  }, [user?.profilePicture]);
 
   // Auto-dismiss success toast after 4 seconds
   useEffect(() => {
@@ -222,7 +200,7 @@ const UserProfile = () => {
                     className="w-full h-full object-cover"
                     onError={() => {
                       // URL is broken — clear the avatar so initials show instead
-                      setAvatarUrl(null);
+                      // avatarUrl will clear automatically via the hook when profilePicture clears
                       updateProfilePicture(null);
                     }}
                   />
