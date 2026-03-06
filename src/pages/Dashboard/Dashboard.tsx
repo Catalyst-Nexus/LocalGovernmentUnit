@@ -1,7 +1,7 @@
 import { Routes, Route, Link } from "react-router";
 import { lazy, Suspense, useMemo } from "react";
 import Layout from "@/layouts/Layout";
-import { useRBAC } from "@/contexts/RBACContext";
+import { useRBAC } from "@/hooks/useRBAC";
 import UserProfile from "../UserProfile/UserProfile";
 import Settings from "../Settings/Settings";
 
@@ -453,7 +453,7 @@ const Dashboard = () => {
 
   // Get dynamic routes from all modules
   const dynamicRoutes = userModules.map((module) => {
-    const basePath = module.route_path.replace(/^\/dashboard/, "");
+    const basePath = module.route_path;
     const normalizedPath = module.file_path?.replace(/\\/g, "/") || "";
 
     // Check if this is a legacy RBAC module in the registry

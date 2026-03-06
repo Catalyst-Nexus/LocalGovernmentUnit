@@ -68,8 +68,13 @@ CREATE TABLE IF NOT EXISTS hr.rate (
   id          UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
   description TEXT          NOT NULL,          -- e.g. "SG-10 Step 1"
   amount      NUMERIC(12,2) NOT NULL DEFAULT 0,
+  sg_number   SMALLINT      CHECK (sg_number BETWEEN 1 AND 33),  -- DBM Salary Grade 1–33
+  step        SMALLINT      CHECK (step BETWEEN 1 AND 8),        -- Step increment 1–8
   created_at  TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
+-- Add columns if table already existed before this migration version
+ALTER TABLE hr.rate ADD COLUMN IF NOT EXISTS sg_number SMALLINT CHECK (sg_number BETWEEN 1 AND 33);
+ALTER TABLE hr.rate ADD COLUMN IF NOT EXISTS step      SMALLINT CHECK (step BETWEEN 1 AND 8);
 
 -- --------------------------
 -- SALARY RATE
@@ -162,16 +167,23 @@ ON CONFLICT (code) DO UPDATE
 -- POSITION  (plantilla item)
 -- --------------------------
 CREATE TABLE IF NOT EXISTS hr.position (
-  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  description TEXT        NOT NULL,
-  item_no     TEXT        NOT NULL UNIQUE,
-  sr_id       UUID        NOT NULL REFERENCES hr.salary_rate(id),
-  pt_id       UUID        NOT NULL REFERENCES hr.pos_type(id),
-  o_id        UUID        REFERENCES hr.office(id),
-  is_filled   BOOLEAN     NOT NULL DEFAULT false,
-  is_active   BOOLEAN     NOT NULL DEFAULT true,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  description   TEXT        NOT NULL,
+  item_no       TEXT        NOT NULL UNIQUE,
+  sr_id         UUID        NOT NULL REFERENCES hr.salary_rate(id),
+  pt_id         UUID        NOT NULL REFERENCES hr.pos_type(id),
+  o_id          UUID        REFERENCES hr.office(id),
+  -- Auto-synced from sr_id → salary_rate → rate.sg_number by trigger.
+  -- Do NOT set manually; change sr_id and the trigger keeps this in sync.
+  salary_grade  SMALLINT    NULL,
+  "authorization" TEXT        NULL,   -- Legal basis, e.g. "DBM-CSC JR No. 4, s. 2024"
+  is_filled     BOOLEAN     NOT NULL DEFAULT false,
+  is_active     BOOLEAN     NOT NULL DEFAULT true,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Add columns if table already existed before this migration version
+ALTER TABLE hr.position ADD COLUMN IF NOT EXISTS salary_grade    SMALLINT NULL;
+ALTER TABLE hr.position ADD COLUMN IF NOT EXISTS "authorization" TEXT     NULL;
 
 -- =============================================================================
 -- SECTION 2 — PERSONNEL  (IMP #7 civil service fields)
@@ -475,6 +487,74 @@ CREATE TRIGGER trg_calc_time_record_pay
   ON hr.time_record
   FOR EACH ROW EXECUTE FUNCTION hr.calc_time_record_pay();
 
+-- --------------------------
+-- TRIGGER: auto-sync hr.position.salary_grade from sr_id chain
+--
+-- Fires BEFORE INSERT OR UPDATE OF sr_id on hr.position.
+-- Looks up: position.sr_id → salary_rate → rate.sg_number
+-- Sets NEW.salary_grade automatically — never needs manual entry.
+-- If rate.sg_number is NULL (not yet filled in), salary_grade stays NULL.
+-- --------------------------
+CREATE OR REPLACE FUNCTION hr.sync_position_salary_grade()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  SELECT r.sg_number
+    INTO NEW.salary_grade
+    FROM hr.salary_rate sr
+    JOIN hr.rate        r  ON r.id = sr.rate_id
+   WHERE sr.id = NEW.sr_id;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_sync_position_salary_grade
+  BEFORE INSERT OR UPDATE OF sr_id
+  ON hr.position
+  FOR EACH ROW EXECUTE FUNCTION hr.sync_position_salary_grade();
+
+-- --------------------------
+-- TRIGGER: auto-sync hr.position.is_filled
+--
+-- Fires AFTER INSERT / UPDATE(pos_id) / DELETE on hr.personnel.
+-- Sets is_filled = true  when at least one active personnel row points to the position.
+-- Sets is_filled = false when no active personnel row points to it.
+-- Handles pos_id changes: updates both the old and new position rows.
+-- --------------------------
+CREATE OR REPLACE FUNCTION hr.sync_position_is_filled()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_pos_id UUID;
+BEGIN
+  FOR v_pos_id IN
+    SELECT DISTINCT unnest(ARRAY_REMOVE(ARRAY[
+      CASE WHEN TG_OP IN ('UPDATE','DELETE') THEN OLD.pos_id ELSE NULL END,
+      CASE WHEN TG_OP IN ('INSERT','UPDATE') THEN NEW.pos_id ELSE NULL END
+    ], NULL::UUID))
+  LOOP
+    UPDATE hr.position
+       SET is_filled = EXISTS (
+             SELECT 1 FROM hr.personnel
+              WHERE pos_id = v_pos_id
+                AND is_active = true
+           )
+     WHERE id = v_pos_id;
+  END LOOP;
+
+  RETURN NULL; -- AFTER trigger, return value ignored
+END;
+$$;
+
+CREATE TRIGGER trg_sync_position_is_filled
+  AFTER INSERT OR UPDATE OF pos_id, is_active OR DELETE
+  ON hr.personnel
+  FOR EACH ROW EXECUTE FUNCTION hr.sync_position_is_filled();
+
 -- =============================================================================
 -- SECTION 6 — PAY SLIP  (FIX #1 #5, IMP #9)
 -- =============================================================================
@@ -553,7 +633,8 @@ CREATE TABLE IF NOT EXISTS hr.payroll (
   date_from      DATE          NOT NULL,
   date_to        DATE          NOT NULL,
   fiscal_year    INT           NOT NULL,
-  fund_type      TEXT          NOT NULL,   -- primary fund for this batch
+  fund_type      TEXT          NOT NULL
+                 CHECK (fund_type IN ('GF','SEF','LDRRMF','SHF','DEVFUND','TRUST')),
   total_amount   NUMERIC(15,2) NOT NULL DEFAULT 0,
   -- Approval workflow (IMP #9)
   status         TEXT          NOT NULL DEFAULT 'draft'
@@ -727,6 +808,8 @@ VALUES
   ('profile_picture',  'profile_picture',  false, 5242880,
    ARRAY['image/jpeg','image/jpg','image/png','image/webp']),
   ('personnel_photos', 'personnel_photos', false, 5242880,
+   ARRAY['image/jpeg','image/jpg','image/png','image/webp']),
+  ('system_logo',      'system_logo',      false, 5242880,
    ARRAY['image/jpeg','image/jpg','image/png','image/webp'])
 ON CONFLICT (id) DO UPDATE
   SET file_size_limit    = EXCLUDED.file_size_limit,
@@ -761,3 +844,18 @@ CREATE POLICY "personnel_photos_update" ON storage.objects FOR UPDATE TO authent
   USING (bucket_id = 'personnel_photos');
 CREATE POLICY "personnel_photos_delete" ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'personnel_photos');
+
+-- system_logo policies
+DROP POLICY IF EXISTS "system_logo_select" ON storage.objects;
+DROP POLICY IF EXISTS "system_logo_insert" ON storage.objects;
+DROP POLICY IF EXISTS "system_logo_update" ON storage.objects;
+DROP POLICY IF EXISTS "system_logo_delete" ON storage.objects;
+
+CREATE POLICY "system_logo_select" ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'system_logo');
+CREATE POLICY "system_logo_insert" ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'system_logo');
+CREATE POLICY "system_logo_update" ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'system_logo');
+CREATE POLICY "system_logo_delete" ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'system_logo');

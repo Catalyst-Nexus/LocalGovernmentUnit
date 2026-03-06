@@ -1,16 +1,20 @@
 export interface Employee {
   id: string;
+  /** Maps to hr.position.item_no */
   employee_number: string;
   first_name: string;
   last_name: string;
   middle_name: string;
   position_id: string;
+  /** Maps to hr.position.description */
   position_title: string;
   office_id: string;
+  /** Maps to hr.office.description */
   office_name: string;
-  salary_grade: number;
-  step: number;
-  monthly_salary: number;
+  /** Populated when joined via salary_rate chain; optional */
+  salary_grade?: number | null;
+  step?: number | null;
+  monthly_salary?: number | null;
   employment_status:
     | "permanent"
     | "casual"
@@ -20,18 +24,21 @@ export interface Employee {
   date_hired: string;
   is_active: boolean;
   created_at: string;
+  /** auth.users.id — null when no system account has been linked */
+  user_id: string | null;
 }
 
 export interface PlantillaPosition {
   id: string;
   item_number: string;
   position_title: string;
-  salary_grade: number;
+  /** Derived from salary_rate → rate chain (e.g. "SG-10") */
+  salary_grade: string;
   office_id: string;
   office_name: string;
+  pos_type: string;
   is_filled: boolean;
-  incumbent_id: string | null;
-  authorization: string;
+  incumbent_name: string | null;
   created_at: string;
 }
 
@@ -39,7 +46,27 @@ export interface LeaveApplication {
   id: string;
   employee_id: string;
   employee_name: string;
-  leave_type: "VL" | "SL" | "ML" | "PL" | "SPL" | "FL" | "CL";
+  leave_type:
+    | "VL"
+    | "SL"
+    | "ML"
+    | "PL"
+    | "SPL"
+    | "FL"
+    | "CL"
+    | "BL"
+    | "LWOP"
+    | "BDAY"
+    | "STL"
+    | "VAWC"
+    | "OB"
+    | "REHAB"
+    | "SPL_MAGNA_CARTA"
+    | "CTO"
+    | "FORCE"
+    | "COMP"
+    | "OT"
+    | "RT";
   date_from: string;
   date_to: string;
   days: number;
@@ -54,11 +81,32 @@ export interface AttendanceRecord {
   employee_id: string;
   employee_name: string;
   date: string;
-  time_in: string | null;
-  time_out: string | null;
-  hours_worked: number;
+  /** AM in  (maps to hr.time_record.in1)  */
+  in1: string | null;
+  /** AM out (maps to hr.time_record.out1) */
+  out1: string | null;
+  /** PM in  (maps to hr.time_record.in2)  */
+  in2: string | null;
+  /** PM out (maps to hr.time_record.out2) */
+  out2: string | null;
+  /** OT in  */
+  ot_in: string | null;
+  /** OT out */
+  ot_out: string | null;
+  /** Trigger-computed pay */
+  pay_amount: number;
   status: "present" | "absent" | "late" | "halfday" | "holiday";
   created_at: string;
+}
+
+export interface PaySlipDeduction {
+  id: string;
+  deduction_type_id: string;
+  /** Deduction type code (e.g. GSIS_PS, PHILHEALTH) */
+  code?: string;
+  description?: string;
+  amount: number;
+  remarks: string;
 }
 
 export interface PayrollEntry {
@@ -66,17 +114,14 @@ export interface PayrollEntry {
   payroll_period_id: string;
   employee_id: string;
   employee_name: string;
-  fund_type: string;
-  basic_pay: number;
-  pera: number;
-  gross_pay: number;
-  gsis: number;
-  philhealth: number;
-  pagibig: number;
-  bir_tax: number;
-  other_deductions: number;
+  period_start: string;
+  period_end: string;
+  period_type: "first_half" | "second_half" | "monthly" | "special";
+  gross_amount: number;
   total_deductions: number;
-  net_pay: number;
+  net_amount: number;
+  /** Flexible deductions from hr.pay_slip_deductions */
+  deductions: PaySlipDeduction[];
   status: "draft" | "computed" | "approved" | "released";
   created_at: string;
 }
@@ -87,7 +132,7 @@ export interface PayrollPeriod {
   date_from: string;
   date_to: string;
   fiscal_year: number;
-  fund_type: string;
-  status: "open" | "computed" | "approved" | "closed";
+  fund_type: "GF" | "SEF" | "LDRRMF" | "SHF" | "DEVFUND" | "TRUST";
+  status: "draft" | "computed" | "approved" | "released";
   created_at: string;
 }

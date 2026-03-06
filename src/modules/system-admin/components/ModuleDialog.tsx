@@ -62,7 +62,7 @@ const ModuleDialog = ({
       <FormInput
         id="route-path"
         label="Route Path"
-        placeholder="e.g., /dashboard/user-management"
+        placeholder="e.g., /hr-payroll/employees"
         value={routePath}
         onChange={onRoutePathChange}
         required

@@ -36,7 +36,7 @@ const UserActivation = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Use permission guard for permission-checked operations
-  const { canPerform } = usePermissionGuard("/dashboard/user-activation");
+  const { canPerform } = usePermissionGuard("/admin/activation");
 
   const loadPendingUsers = useCallback(async () => {
     setIsLoading(true);
